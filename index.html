@@ -382,8 +382,7 @@ function metaHTML(m) {
 function teamRow(t, isWinner, hideScore) {
   let name;
   if (t.team) name = `<span class="flag">${t.flag || ""}</span><span class="name">${t.team}</span>`;
-  else if (t.ph) name = `<span class="name ph">🛡 ${t.ph}</span>`;
-  else name = `<span class="name tbd">TBD</span>`;
+  else name = `<span class="name tbd">🛡 TBD</span>`;
   const hasScore = t.score !== "" && t.score != null;
   const score = (hideScore || !hasScore) ? "" : t.score;
   const cls = `team${isWinner ? " winner" : ""}${!t.team ? " tbd" : ""}`;
