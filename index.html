@@ -805,16 +805,34 @@ function download(name, text, type) {
   a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 2000);
 }
+// Where to read the page's HTML source for export. We try the current page
+// first; if that's blocked (local file, or a host that won't serve itself to
+// fetch), we fall back to the canonical copy on GitHub, which sends permissive
+// CORS headers. Update SOURCE_FALLBACK_URL if you rename/move the repo.
+const SOURCE_FALLBACK_URL = "https://raw.githubusercontent.com/abhigyankumarpathak/FIFA-2026-WORLD-CUP-BRACKET/main/index.html";
+const DATA_BLOCK_RE = /\nconst DATA = \{[\s\S]*?\n\};/;   // anchored to the real block at line start
+
+async function fetchPageSource() {
+  for (const url of [location.href, SOURCE_FALLBACK_URL]) {
+    try {
+      const r = await fetch(url, { cache: "no-store" });
+      if (!r.ok) continue;
+      const text = await r.text();
+      if (DATA_BLOCK_RE.test(text)) return text;
+    } catch { /* try the next source */ }
+  }
+  return null;
+}
 async function exportSite() {
+  $("exportNote").textContent = "Building…";
   const literal = "const DATA = " + JSON.stringify(mergedDATA(), null, 2) + ";";
-  let html = null;
-  try { const r = await fetch(location.href, { cache: "no-store" }); if (r.ok) html = await r.text(); } catch {}
-  const re = /\nconst DATA = \{[\s\S]*?\n\};/;   // anchored to the real block at line start
-  if (html && re.test(html)) {
-    download("index.html", html.replace(re, "\n" + literal), "text/html");
-    $("exportNote").textContent = "✓ Downloaded index.html — commit & push it to GitHub to update the public site.";
+  const html = await fetchPageSource();
+  if (html) {
+    download("index.html", html.replace(DATA_BLOCK_RE, "\n" + literal), "text/html");
+    $("exportNote").textContent = "✓ Downloaded index.html — commit & push it to update the public site.";
   } else {
-    // Fallback (e.g. opened from file://): show the DATA block to paste in by hand.
+    // Last resort: hand the DATA block over to paste in manually.
+    $("exportNote").textContent = "";
     $("exportText").value = literal;
     $("exportModal").hidden = false;
   }
