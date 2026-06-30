@@ -188,12 +188,14 @@
 
   /* ---------- Admin / edit mode ---------- */
   #adminLock {
-    position: fixed; right: 14px; bottom: 14px; z-index: 50;
-    width: 42px; height: 42px; border-radius: 50%;
-    border: 1px solid var(--card-border); background: #11161f; color: var(--muted);
-    font-size: 1.15rem; cursor: pointer; opacity: .4; transition: opacity .2s, transform .2s;
+    position: fixed; right: 16px; bottom: 16px; z-index: 50;
+    width: 46px; height: 46px; border-radius: 50%;
+    border: 1px solid var(--card-border); background: #11161f; color: var(--text);
+    font-size: 1.25rem; cursor: pointer; opacity: .9;
+    box-shadow: 0 4px 14px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.06);
+    transition: opacity .2s, transform .2s, box-shadow .2s;
   }
-  #adminLock:hover { opacity: 1; transform: scale(1.08); }
+  #adminLock:hover { opacity: 1; transform: scale(1.08); box-shadow: 0 4px 18px rgba(255,45,79,.5); }
   #adminBar {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
     display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;
