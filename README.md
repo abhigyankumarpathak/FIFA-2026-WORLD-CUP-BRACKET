@@ -8,48 +8,14 @@ Live site (once GitHub Pages is on): `https://abhigyankumarpathak.github.io/FIFA
 
 ---
 
-## Two ways to edit
+## How to edit it
 
-1. **Admin mode (in the browser)** — click the 🔒 button, enter a password, and edit
-   scores / teams / bracket right on the page, then **Export** the updated file. Best for
-   quick live updates. See [Admin mode](#admin-mode-edit-in-the-browser).
-2. **Edit the `DATA` block (in the code)** — change the data directly in `index.html`
-   (look for the big `⚽ EDIT EVERYTHING HERE` comment, around line 300). Best for bulk
-   changes. The rest of this guide explains every field.
+Everything you change lives in **one place**: the `DATA` block near the bottom of
+`index.html` (look for the big `⚽ EDIT EVERYTHING HERE` comment, around line 274).
+You never touch the HTML or CSS.
 
-Either way, a change only becomes **public** after you commit & push (see
-[Publishing](#publishing-changes)). Editing the `DATA` block: **save the file**, then
-**refresh the browser**.
-
----
-
-## Admin mode (edit in the browser)
-
-You don't have to touch code to update scores. There's a password-gated editor built in.
-
-**How to use it:**
-1. Click the **🔒 button** in the bottom-right corner.
-2. Enter the admin password.
-3. Click any **score, team name, or flag** on the page and type the new value
-   (press **Enter** or click away to save). Each match also gets **Status / Winner / Clock**
-   controls, and you can set the **Champion** under the trophy.
-4. Click **⬇ Export updated site** — this downloads a ready-to-commit `index.html` with all
-   your edits baked in. Commit & push it (see [Publishing](#publishing-changes)) to make the
-   changes public. **Discard edits** reverts everything to the published data.
-
-**Set your password** near the top of the script in `index.html`:
-
-```js
-const ADMIN_PASSWORD = "worldcup2026";   // <-- change this to your own secret
-```
-
-> ⚠️ **Two important caveats** — this is a static site (GitHub Pages) with **no server**:
-> - **The password is not real security.** It only hides the editing controls from casual
->   visitors; anyone who views the page source can read it. The real protection is that
->   **only you can push to this repo**.
-> - **Edits stay in your browser until you Export + push.** While you edit, changes are saved
->   locally (so you can preview and fix mistakes) — they reach the **public only after you
->   Export the `index.html` and commit it**.
+After any edit: **save the file**, then **refresh the browser**. To publish the
+change online, commit & push (see [Publishing](#publishing-changes) below).
 
 Each match is one line that looks like this:
 
@@ -208,7 +174,6 @@ the live site updates automatically a minute or two after you push.
 
 | I want to… | Do this |
 |------------|---------|
-| Edit without touching code | Open **Admin mode** (🔒 button), edit, then **Export** & push |
 | Update a score | Change `score:` for `a` and/or `b` |
 | Mark a game finished | Set `status:"ft"` (winner auto-highlights) |
 | Show a game as live now | Leave `status:"auto"` (or force `"live"`) |
