@@ -207,6 +207,14 @@
     letter-spacing: 1px; font-size: 0.85rem; text-transform: uppercase; min-height: 1em;
   }
 
+  .thirdplace-matchup {
+    border: 1px solid #cd7f32; border-radius: 12px;
+    background: rgba(205, 127, 50, 0.08);
+    box-shadow: 0 0 18px rgba(205, 127, 50, 0.2); width: 100%;
+  }
+  .thirdplace-matchup .round-title { color: #e3a866; border-color: rgba(205,127,50,0.35); margin: 10px 0 0; }
+  .thirdplace-matchup .team { padding: 10px 14px; }
+
   footer {
     text-align: center; padding: 26px 20px 50px; color: var(--muted);
     font-size: 0.8rem; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 20px;
@@ -321,7 +329,8 @@ const DATA = {
     { kickoff:"2026-07-15T15:00:00-04:00", a:{ph:"QF W3"}, b:{ph:"QF W4"}, status:"auto" }, // Match 102
   ],
 
-  final:    { kickoff:"2026-07-19T15:00:00-04:00", a:{ph:"SF W1"}, b:{ph:"SF W2"}, status:"auto" },
+  final:      { kickoff:"2026-07-19T15:00:00-04:00", a:{ph:"SF W1"}, b:{ph:"SF W2"}, status:"auto" },
+  thirdPlace: { kickoff:"2026-07-18T17:00:00-04:00", a:{ph:"SF L1"}, b:{ph:"SF L2"}, status:"auto" }, // Match 103
   champion: "",
 };
 /* ===================  no need to edit below this line  =================== */
@@ -425,6 +434,13 @@ function render() {
         })()}
       </div>
       <div class="champion">${DATA.champion ? "🥇 Champions: " + DATA.champion : ""}</div>
+      <div class="thirdplace-matchup">
+        <div class="round-title">🥉 3rd-Place · Jul 18</div>
+        ${(() => {
+          const m = DATA.thirdPlace, win = decideWinner(m), hide = effectiveStatus(m) === "upcoming";
+          return teamRow(m.a, win === "a", hide) + teamRow(m.b, win === "b", hide);
+        })()}
+      </div>
     </div>`;
 
   document.getElementById("bracket").innerHTML =
@@ -441,7 +457,7 @@ function render() {
     ...DATA.roundOf32,
     ...DATA.leftR16, ...DATA.leftQF, ...DATA.leftSF,
     ...DATA.rightR16, ...DATA.rightQF, ...DATA.rightSF,
-    DATA.final,
+    DATA.final, DATA.thirdPlace,
   ];
   const liveGames = all.filter(m => effectiveStatus(m) === "live");
   const bar = document.getElementById("liveBar");
