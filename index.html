@@ -26,28 +26,19 @@
     min-height: 100vh;
     position: relative;
     overflow-x: auto;
-    background:
-      radial-gradient(circle at 15% 20%, rgba(0, 143, 93, 0.35), transparent 40%),
-      radial-gradient(circle at 85% 15%, rgba(200, 16, 46, 0.35), transparent 42%),
-      radial-gradient(circle at 50% 90%, rgba(255, 210, 0, 0.25), transparent 45%),
-      linear-gradient(135deg, #061226 0%, #0a2240 45%, #10182f 100%);
-    background-attachment: fixed;
+    background: #000;
   }
 
-  /* Soccer-pitch lines overlay for the FIFA 2026 themed background */
+  /* Black background with a repeating FIFA World Cup 2026 logo watermark */
   body::before {
     content: "";
     position: fixed;
     inset: 0;
     z-index: -1;
     pointer-events: none;
-    opacity: 0.12;
-    background-image:
-      linear-gradient(rgba(255,255,255,0.6) 2px, transparent 2px),
-      radial-gradient(circle at 50% 50%, transparent 120px, rgba(255,255,255,0.5) 122px, transparent 124px);
-    background-size: 100% 90px, 100% 100%;
-    background-position: center;
-    background-repeat: repeat-y, no-repeat;
+    background-color: #000;
+    background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='320'%20height='220'%3E%3Ctext%20x='24'%20y='56'%20font-family='Arial,Helvetica,sans-serif'%20font-size='36'%20font-weight='900'%20fill='%23ffffff'%20opacity='0.05'%3EFIFA%3C/text%3E%3Ctext%20x='196'%20y='126'%20font-size='46'%20opacity='0.05'%3E⚽%3C/text%3E%3Ctext%20x='44'%20y='182'%20font-size='42'%20opacity='0.05'%3E🏆%3C/text%3E%3Ctext%20x='150'%20y='198'%20font-family='Arial,Helvetica,sans-serif'%20font-size='15'%20font-weight='700'%20letter-spacing='2'%20fill='%23ffffff'%20opacity='0.05'%3EWORLD%20CUP%2026%3C/text%3E%3C/svg%3E");
+    background-repeat: repeat;
   }
 
   header { text-align: center; padding: 48px 20px 20px; position: relative; }
@@ -127,6 +118,8 @@
     transition: transform 0.15s ease, border-color 0.15s ease;
   }
   .matchup:hover { transform: translateY(-2px) scale(1.02); border-color: var(--gold); }
+  /* Reserve a strip at the top so the FT/LIVE tag never overlaps the score */
+  .matchup.has-tag { padding-top: 22px; }
 
   .matchup.is-live {
     border-color: var(--live);
@@ -338,9 +331,12 @@ function decideWinner(m) {
   return "";
 }
 
-const FMT_DATE = new Intl.DateTimeFormat(undefined, {
+// Times are always shown in US Eastern (the times entered in DATA), so every
+// viewer sees the same schedule regardless of their own timezone.
+const FMT_DATE = new Intl.DateTimeFormat("en-US", {
   weekday:"short", month:"short", day:"numeric",
   hour:"numeric", minute:"2-digit", timeZoneName:"short",
+  timeZone:"America/New_York",
 });
 
 function countdownText(ms) {
@@ -381,7 +377,7 @@ function matchupHTML(m) {
   let tag = "";
   if (live) tag = `<span class="status-tag live"><span class="dot"></span>LIVE</span>`;
   else if (st === "ft") tag = `<span class="status-tag ft">FT${m.pens ? " (P)" : ""}</span>`;
-  return `<div class="matchup${live ? " is-live" : ""}">
+  return `<div class="matchup${live ? " is-live" : ""}${tag ? " has-tag" : ""}">
     ${tag}
     ${teamRow(m.a, win === "a", hideScore)}
     ${teamRow(m.b, win === "b", hideScore)}
