@@ -185,6 +185,10 @@
   .team.winner { background: linear-gradient(90deg, rgba(0, 143, 93, 0.35), transparent); color: #fff; }
   .team.winner .score { color: var(--gold); }
   .matchup.is-live .team .score { color: var(--live); }
+  /* Live scores are click-to-edit right on the page */
+  .team .score.editable { cursor: text; border-radius: 5px; padding: 0 4px; outline: none; }
+  .team .score.editable:hover { box-shadow: inset 0 0 0 1px rgba(255, 45, 79, 0.5); }
+  .team .score.editable:focus { box-shadow: inset 0 0 0 1px var(--live); background: rgba(255, 45, 79, 0.12); }
   .team.tbd { color: var(--muted); font-weight: 500; }
   .team .ph { color: var(--muted); font-weight: 600; }
 
@@ -268,7 +272,9 @@
   <footer>
     <p><strong>FIFA World Cup 2026™</strong> — The first 48-team tournament, hosted across Canada 🇨🇦, the United States 🇺🇸, and Mexico 🇲🇽.</p>
     <p style="margin-top:8px;">To update: edit the <code>DATA</code> block at the top of the script. Set a match's
-      <code>status</code> to <code>"live"</code>, <code>"ft"</code>, or <code>"auto"</code>.</p>
+      <code>status</code> to <code>"live"</code>, <code>"ft"</code>, or <code>"auto"</code>.
+      While a match is <strong>LIVE</strong>, you can also just <strong>click its score on the page</strong> and type the new value
+      (Enter or click away to save) — it's stored in your browser and survives refreshes.</p>
   </footer>
 
 <script>
@@ -363,10 +369,38 @@ function effectiveStatus(m) {
   return "ft";
 }
 
+// --- Manual live-score overrides (typed in the browser, saved locally) -----
+// A stable id from kickoff + the two slots, so a saved score sticks to the
+// right match even before placeholder slots resolve into real teams.
+function matchKey(m) {
+  const slot = s => m[s].team || m[s].ph || "?";
+  return `${m.kickoff || ""}|${slot("a")}|${slot("b")}`;
+}
+function loadOverrides() {
+  try { return JSON.parse(localStorage.getItem("liveScoreOverrides") || "{}"); }
+  catch { return {}; }
+}
+function saveOverride(key, side, val) {
+  const o = loadOverrides();
+  (o[key] = o[key] || {})[side] = val;
+  localStorage.setItem("liveScoreOverrides", JSON.stringify(o));
+}
+function overrideFor(key, side) {
+  const o = loadOverrides()[key];
+  return o ? o[side] : undefined;
+}
+// Effective score for display/winner logic: a manual override wins, otherwise
+// the value from the DATA block.
+function getScore(m, side) {
+  const ov = overrideFor(matchKey(m), side);
+  return (ov != null && ov !== "") ? ov : m[side].score;
+}
+
 function decideWinner(m) {
   if (m.winner === "a" || m.winner === "b") return m.winner;
-  if (effectiveStatus(m) === "ft" && m.a.score !== "" && m.b.score !== "") {
-    const sa = parseInt(m.a.score, 10), sb = parseInt(m.b.score, 10);
+  const a = getScore(m, "a"), b = getScore(m, "b");
+  if (effectiveStatus(m) === "ft" && a !== "" && a != null && b !== "" && b != null) {
+    const sa = parseInt(a, 10), sb = parseInt(b, 10);
     if (sa > sb) return "a";
     if (sb > sa) return "b";
   }
@@ -405,16 +439,22 @@ function metaHTML(m) {
   return `<div class="match-meta"><span class="when">🗓 ${when}</span>${line2}</div>`;
 }
 
-function teamRow(t, isWinner, hideScore, liveZero) {
+function teamRow(t, isWinner, hideScore, live, key, side) {
   let name;
   if (t.team) name = `<span class="flag">${t.flag || ""}</span><span class="name">${t.team}</span>`;
   else name = `<span class="name tbd">🛡 TBD</span>`;
+  const ov = overrideFor(key, side);
   const hasScore = t.score !== "" && t.score != null;
-  // Live match with no score entered yet -> show 0 automatically.
-  let score = "";
-  if (!hideScore) score = hasScore ? t.score : (liveZero ? 0 : "");
+  // Priority: a manually-typed override, then the DATA score; a live match with
+  // nothing entered yet starts at 0 but can be edited right here in the page.
+  let score = "", attrs = "";
+  if (!hideScore) {
+    if (ov != null && ov !== "") score = ov;
+    else score = hasScore ? t.score : (live ? 0 : "");
+    if (live) attrs = ` contenteditable="true" inputmode="numeric" data-key="${key}" data-side="${side}" title="Click to edit the live score"`;
+  }
   const cls = `team${isWinner ? " winner" : ""}${!t.team ? " tbd" : ""}`;
-  return `<div class="${cls}"><span>${name}</span><span class="score">${score}</span></div>`;
+  return `<div class="${cls}"><span>${name}</span><span class="score${live && !hideScore ? " editable" : ""}"${attrs}>${score}</span></div>`;
 }
 
 function matchupHTML(m) {
@@ -427,10 +467,11 @@ function matchupHTML(m) {
   if (live) tag = `<span class="status-tag live"><span class="dot"></span>LIVE</span>`;
   else if (soon) tag = `<span class="status-tag soon">⏳ SOON</span>`;
   else if (st === "ft") tag = `<span class="status-tag ft">FT${m.pens ? " (P)" : ""}</span>`;
+  const key = matchKey(m);
   return `<div class="matchup${live ? " is-live" : ""}${soon ? " is-soon" : ""}${tag ? " has-tag" : ""}">
     ${tag}
-    ${teamRow(m.a, win === "a", hideScore, live)}
-    ${teamRow(m.b, win === "b", hideScore, live)}
+    ${teamRow(m.a, win === "a", hideScore, live, key, "a")}
+    ${teamRow(m.b, win === "b", hideScore, live, key, "b")}
     ${metaHTML(m)}
   </div>`;
 }
@@ -450,16 +491,16 @@ function render() {
       <div class="final-matchup">
         <div class="round-title">The Final · Jul 19</div>
         ${(() => {
-          const m = DATA.final, win = decideWinner(m), st = effectiveStatus(m), hide = ["upcoming","soon"].includes(st);
-          return teamRow(m.a, win === "a", hide, st === "live") + teamRow(m.b, win === "b", hide, st === "live");
+          const m = DATA.final, win = decideWinner(m), st = effectiveStatus(m), hide = ["upcoming","soon"].includes(st), key = matchKey(m);
+          return teamRow(m.a, win === "a", hide, st === "live", key, "a") + teamRow(m.b, win === "b", hide, st === "live", key, "b");
         })()}
       </div>
       <div class="champion">${DATA.champion ? "🥇 Champions: " + DATA.champion : ""}</div>
       <div class="thirdplace-matchup">
         <div class="round-title">🥉 3rd-Place · Jul 18</div>
         ${(() => {
-          const m = DATA.thirdPlace, win = decideWinner(m), st = effectiveStatus(m), hide = ["upcoming","soon"].includes(st);
-          return teamRow(m.a, win === "a", hide, st === "live") + teamRow(m.b, win === "b", hide, st === "live");
+          const m = DATA.thirdPlace, win = decideWinner(m), st = effectiveStatus(m), hide = ["upcoming","soon"].includes(st), key = matchKey(m);
+          return teamRow(m.a, win === "a", hide, st === "live", key, "a") + teamRow(m.b, win === "b", hide, st === "live", key, "b");
         })()}
       </div>
     </div>`;
@@ -483,18 +524,34 @@ function render() {
   const liveGames = all.filter(m => effectiveStatus(m) === "live");
   const bar = document.getElementById("liveBar");
   if (liveGames.length) {
-    const sc = v => (v === "" || v == null) ? 0 : v;  // live games default to 0
+    const sc = (m, side) => { const v = getScore(m, side); return (v === "" || v == null) ? 0 : v; };  // live games default to 0
     bar.innerHTML = liveGames.map(m =>
-      `<span class="live-pill"><span class="dot"></span>${m.a.flag} ${m.a.team || "TBD"} ${sc(m.a.score)}–${sc(m.b.score)} ${m.b.team || "TBD"} ${m.b.flag}${m.clock ? " · " + m.clock : ""}</span>`
+      `<span class="live-pill"><span class="dot"></span>${m.a.flag} ${m.a.team || "TBD"} ${sc(m, "a")}–${sc(m, "b")} ${m.b.team || "TBD"} ${m.b.flag}${m.clock ? " · " + m.clock : ""}</span>`
     ).join("");
   } else {
     bar.innerHTML = `<span class="none">No matches live right now</span>`;
   }
 }
 
+// Commit an edited live score: save it locally and re-render everywhere.
+function isScoreField(el) {
+  return el && el.classList && el.classList.contains("score") && el.isContentEditable;
+}
+document.addEventListener("blur", e => {
+  if (!isScoreField(e.target)) return;
+  const { key, side } = e.target.dataset;
+  if (key) saveOverride(key, side, e.target.textContent.trim());
+  render();
+}, true);
+document.addEventListener("keydown", e => {
+  if (!isScoreField(e.target)) return;
+  if (e.key === "Enter") { e.preventDefault(); e.target.blur(); }  // commit
+});
+
 render();
-// Re-render every 30s so countdowns tick and "auto" matches flip on their own.
-setInterval(render, 30000);
+// Re-render every 30s so countdowns tick and "auto" matches flip on their own,
+// but never while you're mid-edit on a score (it would discard your typing).
+setInterval(() => { if (!isScoreField(document.activeElement)) render(); }, 30000);
 </script>
 </body>
 </html>
