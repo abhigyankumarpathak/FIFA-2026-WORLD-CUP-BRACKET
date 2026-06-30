@@ -185,10 +185,79 @@
   .team.winner { background: linear-gradient(90deg, rgba(0, 143, 93, 0.35), transparent); color: #fff; }
   .team.winner .score { color: var(--gold); }
   .matchup.is-live .team .score { color: var(--live); }
-  /* Live scores are click-to-edit right on the page */
-  .team .score.editable { cursor: text; border-radius: 5px; padding: 0 4px; outline: none; }
-  .team .score.editable:hover { box-shadow: inset 0 0 0 1px rgba(255, 45, 79, 0.5); }
-  .team .score.editable:focus { box-shadow: inset 0 0 0 1px var(--live); background: rgba(255, 45, 79, 0.12); }
+
+  /* ---------- Admin / edit mode ---------- */
+  #adminLock {
+    position: fixed; right: 14px; bottom: 14px; z-index: 50;
+    width: 42px; height: 42px; border-radius: 50%;
+    border: 1px solid var(--card-border); background: #11161f; color: var(--muted);
+    font-size: 1.15rem; cursor: pointer; opacity: .4; transition: opacity .2s, transform .2s;
+  }
+  #adminLock:hover { opacity: 1; transform: scale(1.08); }
+  #adminBar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;
+    padding: 10px 16px; background: #11161f; border-top: 2px solid var(--live);
+    box-shadow: 0 -8px 24px rgba(0,0,0,.55); font-size: .82rem;
+  }
+  #adminBar .abadge { font-weight: 800; color: var(--live); letter-spacing: .5px; }
+  #adminBar .ahint { color: var(--muted); max-width: 560px; }
+  #adminBar .anote { color: var(--green); font-weight: 700; }
+  #adminBar .aspacer { flex: 1; }
+  #adminBar code { background: rgba(255,255,255,.09); padding: 1px 5px; border-radius: 4px; }
+  #adminBar button {
+    cursor: pointer; border-radius: 7px; padding: 7px 12px;
+    border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text); font-weight: 600;
+  }
+  #adminExport { background: var(--green); border-color: transparent; color: #fff; }
+  body.admin { padding-bottom: 96px; }
+
+  .admin-controls {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;
+    padding-top: 8px; border-top: 1px dashed var(--card-border);
+  }
+  .admin-controls label { font-size: .66rem; color: var(--muted); display: flex; flex-direction: column; gap: 2px; text-transform: uppercase; letter-spacing: .4px; }
+  .admin-field {
+    background: #0c1118; color: var(--text); border: 1px solid var(--card-border);
+    border-radius: 6px; padding: 4px 6px; font-size: .8rem; font-family: inherit;
+  }
+  .admin-controls input.admin-clock { width: 84px; }
+
+  /* Editable fields get a subtle outline so it's obvious what you can click. */
+  body.admin .team .flag[contenteditable],
+  body.admin .team .name[contenteditable],
+  body.admin .team .score[contenteditable] {
+    cursor: text; border-radius: 5px; padding: 0 4px; outline: none;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.14);
+  }
+  body.admin .team [contenteditable]:hover { box-shadow: inset 0 0 0 1px rgba(255,45,79,.55); }
+  body.admin .team [contenteditable]:focus { box-shadow: inset 0 0 0 1px var(--live); background: rgba(255,45,79,.12); }
+  body.admin .team .name[contenteditable]:empty::before,
+  .champ-edit:empty::before { content: attr(data-ph); color: var(--muted); opacity: .55; }
+  .champ-edit { outline: none; border-bottom: 1px dashed var(--muted); padding: 0 4px; min-width: 80px; display: inline-block; }
+  .champ-edit:focus { border-color: var(--gold); }
+
+  #exportModal {
+    position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,.72);
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  #exportModal .export-card {
+    background: #11161f; border: 1px solid var(--card-border); border-radius: 12px;
+    padding: 20px; max-width: 760px; width: 100%;
+  }
+  #exportModal h3 { margin: 0 0 6px; }
+  #exportModal p { color: var(--muted); font-size: .82rem; margin: 0 0 10px; }
+  #exportModal code { background: rgba(255,255,255,.09); padding: 1px 5px; border-radius: 4px; }
+  #exportText {
+    width: 100%; height: 320px; resize: vertical; font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: .72rem; background: #0c1118; color: var(--text);
+    border: 1px solid var(--card-border); border-radius: 8px; padding: 10px;
+  }
+  .export-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }
+  .export-actions button {
+    cursor: pointer; border-radius: 7px; padding: 7px 14px;
+    border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text); font-weight: 600;
+  }
   .team.tbd { color: var(--muted); font-weight: 500; }
   .team .ph { color: var(--muted); font-weight: 600; }
 
@@ -271,11 +340,35 @@
 
   <footer>
     <p><strong>FIFA World Cup 2026™</strong> — The first 48-team tournament, hosted across Canada 🇨🇦, the United States 🇺🇸, and Mexico 🇲🇽.</p>
-    <p style="margin-top:8px;">To update: edit the <code>DATA</code> block at the top of the script. Set a match's
-      <code>status</code> to <code>"live"</code>, <code>"ft"</code>, or <code>"auto"</code>.
-      While a match is <strong>LIVE</strong>, you can also just <strong>click its score on the page</strong> and type the new value
-      (Enter or click away to save) — it's stored in your browser and survives refreshes.</p>
+    <p style="margin-top:8px;">To update: open <strong>Admin mode</strong> with the 🔒 button (bottom-right), enter the password, then click any
+      score, team, or flag to edit it and use the per-match Status / Winner / Clock controls. Edits are saved in your browser;
+      click <strong>Export updated site</strong> and push the new <code>index.html</code> to GitHub to make them public.</p>
   </footer>
+
+  <!-- Admin / edit mode. The password (ADMIN_PASSWORD in the script) only hides
+       these controls from casual visitors; it is NOT real security. -->
+  <button id="adminLock" title="Edit mode">🔒</button>
+  <div id="adminBar" hidden>
+    <span class="abadge">🔓 ADMIN</span>
+    <span class="ahint">Edits are saved in <b>this browser only</b>. Click <b>Export</b> and push the new <code>index.html</code> to update the public site.</span>
+    <span id="exportNote" class="anote"></span>
+    <span class="aspacer"></span>
+    <button id="adminExport">⬇ Export updated site</button>
+    <button id="adminReset">↺ Discard edits</button>
+    <button id="adminLockBtn">🔒 Lock</button>
+  </div>
+  <div id="exportModal" hidden>
+    <div class="export-card">
+      <h3>Update index.html</h3>
+      <p>Couldn't auto-build the file (you may have opened this from disk). Replace the whole
+        <code>DATA</code> object near the top of the script with the text below, then commit &amp; push.</p>
+      <textarea id="exportText" readonly></textarea>
+      <div class="export-actions">
+        <button id="exportCopy">Copy</button>
+        <button id="exportClose">Close</button>
+      </div>
+    </div>
+  </div>
 
 <script>
 /* =========================================================================
@@ -306,7 +399,7 @@ const DATA = {
     { kickoff:"2026-06-29T16:30:00-04:00", a:{team:"Germany",  flag:"🇩🇪", score:"1 (3)"}, b:{team:"Paraguay", flag:"🇵🇾", score:"1 (4)"}, status:"ft", winner:"b", pens:true },
     { kickoff:"2026-06-30T17:00:00-04:00", a:{team:"France",   flag:"🇫🇷", score:""}, b:{team:"Sweden",      flag:"🇸🇪", score:""}, status:"auto" },
     { kickoff:"2026-06-28T15:00:00-04:00", a:{team:"South Africa", flag:"🇿🇦", score:0}, b:{team:"Canada",   flag:"🇨🇦", score:1}, status:"ft" },
-    { kickoff:"2026-06-29T21:00:00-04:00", a:{team:"Netherlands", flag:"🇳🇱", score:"1 (2)"}, b:{team:"Morocco",   flag:"🇲🇦", score:"1 (3)"}, status:"ft", winner:"b", pens:true },,
+    { kickoff:"2026-06-29T21:00:00-04:00", a:{team:"Netherlands", flag:"🇳🇱", score:"1 (2)"}, b:{team:"Morocco",   flag:"🇲🇦", score:"1 (3)"}, status:"ft", winner:"b", pens:true },
     { kickoff:"2026-07-02T19:00:00-04:00", a:{team:"Portugal", flag:"🇵🇹", score:""}, b:{team:"Croatia",     flag:"🇭🇷", score:""}, status:"auto" },
     { kickoff:"2026-07-02T15:00:00-04:00", a:{team:"Spain",    flag:"🇪🇸", score:""}, b:{team:"Austria",     flag:"🇦🇹", score:""}, status:"auto" },
     { kickoff:"2026-07-01T20:00:00-04:00", a:{team:"USA",      flag:"🇺🇸", score:""}, b:{team:"Bosnia-Herz", flag:"🇧🇦", score:""}, status:"auto" },
@@ -356,10 +449,11 @@ const DATA = {
 };
 /* ===================  no need to edit below this line  =================== */
 
-// Resolve "auto" status into upcoming / soon / live / ft using kickoff + the clock.
-// "soon" = highlighted in the final hour before kickoff.
+// Resolve "auto" status into upcoming / soon / live / ft using kickoff + the
+// clock (honouring an admin status override if one has been set).
 function effectiveStatus(m) {
-  if (m.status !== "auto") return m.status;
+  const status = getStatus(m);
+  if (status !== "auto") return status;
   if (!m.kickoff) return "upcoming";
   const start = new Date(m.kickoff).getTime();
   const now = Date.now();
@@ -369,35 +463,68 @@ function effectiveStatus(m) {
   return "ft";
 }
 
-// --- Manual live-score overrides (typed in the browser, saved locally) -----
-// A stable id from kickoff + the two slots, so a saved score sticks to the
-// right match even before placeholder slots resolve into real teams.
+/* ===========================================================================
+   ADMIN / EDIT MODE — scores, statuses, bracket teams, champion
+   ---------------------------------------------------------------------------
+   This is a STATIC site (GitHub Pages) with no server, so the password below
+   only HIDES the editing controls from casual visitors — it is NOT real
+   security (anyone can read it in the page source). The genuine lock is that
+   only YOU can push to the GitHub repo: your edits live in *your browser* until
+   you click "Export updated site" and commit the downloaded index.html. That
+   commit is what makes a change visible to the public.
+   =========================================================================== */
+const ADMIN_PASSWORD = "worldcup2026";   // <-- CHANGE THIS to your own secret
+const STORE_KEY = "wcAdminEdits";
+let adminMode = false;
+
+function loadStore() {
+  try { const s = JSON.parse(localStorage.getItem(STORE_KEY)); return (s && s.matches) ? s : { matches:{} }; }
+  catch { return { matches:{} }; }
+}
+function saveStore(s) { localStorage.setItem(STORE_KEY, JSON.stringify(s)); }
+
+// Stable id for a match (kickoff + the two slot labels), so an edit sticks to
+// the right match even before a placeholder slot resolves into a real team.
 function matchKey(m) {
   const slot = s => m[s].team || m[s].ph || "?";
   return `${m.kickoff || ""}|${slot("a")}|${slot("b")}`;
 }
-function loadOverrides() {
-  try { return JSON.parse(localStorage.getItem("liveScoreOverrides") || "{}"); }
-  catch { return {}; }
+function editFor(m) { return loadStore().matches[matchKey(m)] || {}; }
+function setEdit(key, field, value) {
+  const s = loadStore();
+  const e = s.matches[key] = s.matches[key] || {};
+  if (field === "status" || field === "winner" || field === "clock") {
+    if (value === "") delete e[field]; else e[field] = value;
+  } else {
+    const side = field[0];                      // 'a' | 'b'
+    const prop = field.slice(1).toLowerCase();  // 'score' | 'team' | 'flag'
+    (e[side] = e[side] || {})[prop] = value;
+  }
+  saveStore(s);
 }
-function saveOverride(key, side, val) {
-  const o = loadOverrides();
-  (o[key] = o[key] || {})[side] = val;
-  localStorage.setItem("liveScoreOverrides", JSON.stringify(o));
-}
-function overrideFor(key, side) {
-  const o = loadOverrides()[key];
-  return o ? o[side] : undefined;
-}
-// Effective score for display/winner logic: a manual override wins, otherwise
-// the value from the DATA block.
+function setChampion(v) { const s = loadStore(); s.champion = v; saveStore(s); }
+function getChampion() { const c = loadStore().champion; return c != null ? c : DATA.champion; }
+
+// Getters: an admin edit wins, otherwise the value from the DATA block.
 function getScore(m, side) {
-  const ov = overrideFor(matchKey(m), side);
-  return (ov != null && ov !== "") ? ov : m[side].score;
+  const e = editFor(m)[side];
+  return (e && e.score != null && e.score !== "") ? e.score : m[side].score;
 }
+function getTeam(m, side) {
+  const e = editFor(m)[side];
+  return (e && e.team != null && e.team !== "") ? e.team : m[side].team;
+}
+function getFlag(m, side) {
+  const e = editFor(m)[side];
+  return (e && e.flag != null) ? e.flag : (m[side].flag || "");
+}
+function getStatus(m) { return editFor(m).status || m.status; }
+function getClock(m)  { const c = editFor(m).clock;  return c != null ? c : (m.clock || ""); }
+function getWinner(m) { const w = editFor(m).winner; return w != null ? w : (m.winner || ""); }
 
 function decideWinner(m) {
-  if (m.winner === "a" || m.winner === "b") return m.winner;
+  const explicit = getWinner(m);
+  if (explicit === "a" || explicit === "b") return explicit;
   const a = getScore(m, "a"), b = getScore(m, "b");
   if (effectiveStatus(m) === "ft" && a !== "" && a != null && b !== "" && b != null) {
     const sa = parseInt(a, 10), sb = parseInt(b, 10);
@@ -405,6 +532,12 @@ function decideWinner(m) {
     if (sb > sa) return "b";
   }
   return "";
+}
+
+// Escape a value for safe insertion into HTML text or an attribute.
+function esc(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
 // Times are always shown in U.S. Eastern (the times entered in DATA), so every
@@ -429,9 +562,10 @@ function metaHTML(m) {
   if (!m.kickoff) return "";
   const when = FMT_DATE.format(new Date(m.kickoff));
   const st = effectiveStatus(m);
+  const clk = getClock(m);
   let line2 = "";
-  if (st === "live" && m.clock) {
-    line2 = `<span class="live-clock">⏱ ${m.clock}</span>`;
+  if (st === "live" && clk) {
+    line2 = `<span class="live-clock">⏱ ${esc(clk)}</span>`;
   } else if (st === "upcoming" || st === "soon") {
     const cd = countdownText(new Date(m.kickoff).getTime() - Date.now());
     if (cd) line2 = `<span class="countdown${st === "soon" ? " soon" : ""}">${cd}</span>`;
@@ -439,22 +573,55 @@ function metaHTML(m) {
   return `<div class="match-meta"><span class="when">🗓 ${when}</span>${line2}</div>`;
 }
 
-function teamRow(t, isWinner, hideScore, live, key, side) {
-  let name;
-  if (t.team) name = `<span class="flag">${t.flag || ""}</span><span class="name">${t.team}</span>`;
-  else name = `<span class="name tbd">🛡 TBD</span>`;
-  const ov = overrideFor(key, side);
-  const hasScore = t.score !== "" && t.score != null;
-  // Priority: a manually-typed override, then the DATA score; a live match with
-  // nothing entered yet starts at 0 but can be edited right here in the page.
-  let score = "", attrs = "";
-  if (!hideScore) {
-    if (ov != null && ov !== "") score = ov;
-    else score = hasScore ? t.score : (live ? 0 : "");
-    if (live) attrs = ` contenteditable="true" inputmode="numeric" data-key="${key}" data-side="${side}" title="Click to edit the live score"`;
+// One team's row. In admin mode the flag, team name and score become editable
+// fields; otherwise it renders read-only exactly as before.
+function teamRow(m, side, isWinner, hideScore) {
+  const t = m[side];
+  const key = esc(matchKey(m));
+  const team = getTeam(m, side), flag = getFlag(m, side);
+
+  let nameHTML;
+  if (adminMode) {
+    nameHTML =
+      `<span class="flag" contenteditable="true" data-key="${key}" data-field="${side}Flag" title="Edit flag">${esc(flag)}</span>` +
+      `<span class="name name-edit" contenteditable="true" data-key="${key}" data-field="${side}Team" data-ph="${esc(t.ph || "TBD")}" title="Edit team">${esc(team || "")}</span>`;
+  } else if (team) {
+    nameHTML = `<span class="flag">${esc(flag)}</span><span class="name">${esc(team)}</span>`;
+  } else {
+    nameHTML = `<span class="name tbd">🛡 TBD</span>`;
   }
-  const cls = `team${isWinner ? " winner" : ""}${!t.team ? " tbd" : ""}`;
-  return `<div class="${cls}"><span>${name}</span><span class="score${live && !hideScore ? " editable" : ""}"${attrs}>${score}</span></div>`;
+
+  const live = effectiveStatus(m) === "live";
+  let score = "", scoreAttrs = "";
+  if (adminMode) {
+    const sc = getScore(m, side);
+    score = (sc == null) ? "" : sc;
+    scoreAttrs = ` contenteditable="true" inputmode="numeric" data-key="${key}" data-field="${side}Score" title="Edit score"`;
+  } else if (!hideScore) {
+    const sc = getScore(m, side);
+    if (sc != null && sc !== "") score = sc;
+    else if (live) score = 0;       // live match with nothing entered shows 0
+  }
+
+  const cls = `team${isWinner ? " winner" : ""}${(!team && !adminMode) ? " tbd" : ""}`;
+  return `<div class="${cls}"><span>${nameHTML}</span><span class="score${adminMode ? " editable" : ""}"${scoreAttrs}>${esc(score)}</span></div>`;
+}
+
+// Per-match admin controls (status / winner / clock). Empty outside admin mode.
+function adminControls(m) {
+  if (!adminMode) return "";
+  const key = esc(matchKey(m));
+  const st = getStatus(m), win = getWinner(m), clk = getClock(m);
+  const opt = (v, label, cur) => `<option value="${esc(v)}"${v === cur ? " selected" : ""}>${esc(label)}</option>`;
+  return `<div class="admin-controls">
+    <label>Status<select class="admin-field" data-key="${key}" data-field="status">${
+      ["auto","upcoming","soon","live","ft"].map(v => opt(v, v, st)).join("")
+    }</select></label>
+    <label>Winner<select class="admin-field" data-key="${key}" data-field="winner">${
+      opt("","auto",win) + opt("a","A",win) + opt("b","B",win)
+    }</select></label>
+    <label>Clock<input class="admin-field admin-clock" data-key="${key}" data-field="clock" value="${esc(clk)}" placeholder="45'+2'"></label>
+  </div>`;
 }
 
 function matchupHTML(m) {
@@ -467,12 +634,12 @@ function matchupHTML(m) {
   if (live) tag = `<span class="status-tag live"><span class="dot"></span>LIVE</span>`;
   else if (soon) tag = `<span class="status-tag soon">⏳ SOON</span>`;
   else if (st === "ft") tag = `<span class="status-tag ft">FT${m.pens ? " (P)" : ""}</span>`;
-  const key = matchKey(m);
   return `<div class="matchup${live ? " is-live" : ""}${soon ? " is-soon" : ""}${tag ? " has-tag" : ""}">
     ${tag}
-    ${teamRow(m.a, win === "a", hideScore, live, key, "a")}
-    ${teamRow(m.b, win === "b", hideScore, live, key, "b")}
+    ${teamRow(m, "a", win === "a", hideScore)}
+    ${teamRow(m, "b", win === "b", hideScore)}
     ${metaHTML(m)}
+    ${adminControls(m)}
   </div>`;
 }
 
@@ -491,16 +658,16 @@ function render() {
       <div class="final-matchup">
         <div class="round-title">The Final · Jul 19</div>
         ${(() => {
-          const m = DATA.final, win = decideWinner(m), st = effectiveStatus(m), hide = ["upcoming","soon"].includes(st), key = matchKey(m);
-          return teamRow(m.a, win === "a", hide, st === "live", key, "a") + teamRow(m.b, win === "b", hide, st === "live", key, "b");
+          const m = DATA.final, win = decideWinner(m), st = effectiveStatus(m), hide = ["upcoming","soon"].includes(st);
+          return teamRow(m, "a", win === "a", hide) + teamRow(m, "b", win === "b", hide) + adminControls(m);
         })()}
       </div>
-      <div class="champion">${DATA.champion ? "🥇 Champions: " + DATA.champion : ""}</div>
+      <div class="champion">${championHTML()}</div>
       <div class="thirdplace-matchup">
         <div class="round-title">🥉 3rd-Place · Jul 18</div>
         ${(() => {
-          const m = DATA.thirdPlace, win = decideWinner(m), st = effectiveStatus(m), hide = ["upcoming","soon"].includes(st), key = matchKey(m);
-          return teamRow(m.a, win === "a", hide, st === "live", key, "a") + teamRow(m.b, win === "b", hide, st === "live", key, "b");
+          const m = DATA.thirdPlace, win = decideWinner(m), st = effectiveStatus(m), hide = ["upcoming","soon"].includes(st);
+          return teamRow(m, "a", win === "a", hide) + teamRow(m, "b", win === "b", hide) + adminControls(m);
         })()}
       </div>
     </div>`;
@@ -526,32 +693,141 @@ function render() {
   if (liveGames.length) {
     const sc = (m, side) => { const v = getScore(m, side); return (v === "" || v == null) ? 0 : v; };  // live games default to 0
     bar.innerHTML = liveGames.map(m =>
-      `<span class="live-pill"><span class="dot"></span>${m.a.flag} ${m.a.team || "TBD"} ${sc(m, "a")}–${sc(m, "b")} ${m.b.team || "TBD"} ${m.b.flag}${m.clock ? " · " + m.clock : ""}</span>`
+      `<span class="live-pill"><span class="dot"></span>${getFlag(m,"a")} ${getTeam(m,"a") || "TBD"} ${esc(sc(m,"a"))}–${esc(sc(m,"b"))} ${getTeam(m,"b") || "TBD"} ${getFlag(m,"b")}${getClock(m) ? " · " + esc(getClock(m)) : ""}</span>`
     ).join("");
   } else {
     bar.innerHTML = `<span class="none">No matches live right now</span>`;
   }
 }
 
-// Commit an edited live score: save it locally and re-render everywhere.
-function isScoreField(el) {
-  return el && el.classList && el.classList.contains("score") && el.isContentEditable;
+function championHTML() {
+  const champ = getChampion();
+  if (adminMode) {
+    return `🥇 Champions: <span id="championEdit" class="champ-edit" contenteditable="true" data-ph="team name">${esc(champ || "")}</span>`;
+  }
+  return champ ? "🥇 Champions: " + esc(champ) : "";
 }
+
+const $ = id => document.getElementById(id);
+const isLiveEdit = el =>
+  el && ((el.isContentEditable && el.dataset && el.dataset.field) ||
+         el.id === "championEdit" ||
+         (el.classList && el.classList.contains("admin-field")));
+
+/* ---- commit an edit, then re-render everywhere ---- */
 document.addEventListener("blur", e => {
-  if (!isScoreField(e.target)) return;
-  const { key, side } = e.target.dataset;
-  if (key) saveOverride(key, side, e.target.textContent.trim());
-  render();
+  const el = e.target;
+  if (el.isContentEditable && el.dataset && el.dataset.field) {
+    setEdit(el.dataset.key, el.dataset.field, el.textContent.trim());
+    render();
+  } else if (el.id === "championEdit") {
+    setChampion(el.textContent.trim());
+    render();
+  }
 }, true);
+document.addEventListener("change", e => {
+  const el = e.target;
+  if (el.classList && el.classList.contains("admin-field")) {
+    setEdit(el.dataset.key, el.dataset.field, el.value);
+    render();
+  }
+});
 document.addEventListener("keydown", e => {
-  if (!isScoreField(e.target)) return;
-  if (e.key === "Enter") { e.preventDefault(); e.target.blur(); }  // commit
+  const el = e.target;
+  if (el.isContentEditable && (el.dataset.field || el.id === "championEdit") && e.key === "Enter") {
+    e.preventDefault(); el.blur();   // Enter commits, doesn't add a newline
+  }
+});
+
+/* ---- unlock / lock ---- */
+function enterAdmin() {
+  adminMode = true;
+  document.body.classList.add("admin");
+  $("adminBar").hidden = false;
+  $("adminLock").hidden = true;
+  render();
+}
+function exitAdmin() {
+  adminMode = false;
+  document.body.classList.remove("admin");
+  $("adminBar").hidden = true;
+  $("adminLock").hidden = false;
+  $("exportNote").textContent = "";
+  render();
+}
+$("adminLock").addEventListener("click", () => {
+  const pw = prompt("Enter admin password:");
+  if (pw == null) return;
+  if (pw === ADMIN_PASSWORD) enterAdmin();
+  else alert("Wrong password.");
+});
+$("adminLockBtn").addEventListener("click", exitAdmin);
+$("adminReset").addEventListener("click", () => {
+  if (confirm("Discard ALL your local edits and revert to the published data?")) {
+    localStorage.removeItem(STORE_KEY);
+    $("exportNote").textContent = "";
+    render();
+  }
+});
+
+/* ---- export: bake the edits into a downloadable index.html ---- */
+function mergedMatch(m) {
+  const out = JSON.parse(JSON.stringify(m));     // deep clone, drops array holes
+  const e = loadStore().matches[matchKey(m)];
+  if (e) {
+    for (const side of ["a", "b"]) {
+      if (!e[side]) continue;
+      if (e[side].team != null && e[side].team !== "") { out[side].team = e[side].team; delete out[side].ph; }
+      if (e[side].flag != null) out[side].flag = e[side].flag;
+      if (e[side].score != null) out[side].score = e[side].score;
+    }
+    if (e.status) out.status = e.status;
+    if (e.clock != null && e.clock !== "") out.clock = e.clock;   // override only; never wipe a DATA value
+    if (e.winner === "a" || e.winner === "b") out.winner = e.winner;
+  }
+  return out;
+}
+function mergedDATA() {
+  const arr = a => a.filter(Boolean).map(mergedMatch);
+  return {
+    roundOf32: arr(DATA.roundOf32),
+    leftR16: arr(DATA.leftR16), leftQF: arr(DATA.leftQF), leftSF: arr(DATA.leftSF),
+    rightR16: arr(DATA.rightR16), rightQF: arr(DATA.rightQF), rightSF: arr(DATA.rightSF),
+    final: mergedMatch(DATA.final), thirdPlace: mergedMatch(DATA.thirdPlace),
+    champion: getChampion(),
+  };
+}
+function download(name, text, type) {
+  const url = URL.createObjectURL(new Blob([text], { type: type || "text/plain" }));
+  const a = document.createElement("a");
+  a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+async function exportSite() {
+  const literal = "const DATA = " + JSON.stringify(mergedDATA(), null, 2) + ";";
+  let html = null;
+  try { const r = await fetch(location.href, { cache: "no-store" }); if (r.ok) html = await r.text(); } catch {}
+  const re = /\nconst DATA = \{[\s\S]*?\n\};/;   // anchored to the real block at line start
+  if (html && re.test(html)) {
+    download("index.html", html.replace(re, "\n" + literal), "text/html");
+    $("exportNote").textContent = "✓ Downloaded index.html — commit & push it to GitHub to update the public site.";
+  } else {
+    // Fallback (e.g. opened from file://): show the DATA block to paste in by hand.
+    $("exportText").value = literal;
+    $("exportModal").hidden = false;
+  }
+}
+$("adminExport").addEventListener("click", exportSite);
+$("exportClose").addEventListener("click", () => { $("exportModal").hidden = true; });
+$("exportCopy").addEventListener("click", () => {
+  const ta = $("exportText"); ta.select();
+  try { document.execCommand("copy"); } catch {}
 });
 
 render();
-// Re-render every 30s so countdowns tick and "auto" matches flip on their own,
-// but never while you're mid-edit on a score (it would discard your typing).
-setInterval(() => { if (!isScoreField(document.activeElement)) render(); }, 30000);
+// Re-render every 30s so countdowns tick and "auto" matches flip on their own —
+// but never while a field is focused (it would discard what you're typing).
+setInterval(() => { if (!isLiveEdit(document.activeElement)) render(); }, 30000);
 </script>
 </body>
 </html>
