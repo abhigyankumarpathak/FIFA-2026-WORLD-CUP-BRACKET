@@ -110,9 +110,15 @@
     margin: 0 auto; align-items: stretch; justify-content: center;
   }
   .round {
-    display: flex; flex-direction: column; justify-content: space-around;
-    gap: 16px; min-width: 220px;
+    display: flex; flex-direction: column; min-width: 220px;
   }
+  /* Body holds only the cards so the title doesn't skew the vertical spacing.
+     Equal card heights + space-around => every card centers at (2i+1)/(2n) of
+     the column, so each QF lands exactly between its two R16 feeders, etc. */
+  .round-body {
+    flex: 1; display: flex; flex-direction: column; justify-content: space-around;
+  }
+  .round-body .matchup { min-height: 130px; margin: 10px 0; }
   .round-title {
     text-align: center; text-transform: uppercase; letter-spacing: 2px;
     font-size: 0.78rem; font-weight: 800; color: var(--gold);
@@ -157,7 +163,7 @@
   }
   .team:last-child { border-bottom: none; }
   .team .flag { margin-right: 8px; }
-  .team .name { flex: 1; }
+  .team .name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .team .score {
     color: var(--muted); font-variant-numeric: tabular-nums;
     font-weight: 700; min-width: 42px; text-align: right;
@@ -174,7 +180,7 @@
     padding: 6px 12px 8px; background: rgba(0,0,0,0.18);
     font-size: 0.68rem; color: var(--muted); line-height: 1.3;
   }
-  .match-meta .when { color: #cdd9ee; font-weight: 600; }
+  .match-meta .when { color: #cdd9ee; font-weight: 600; white-space: nowrap; }
   .match-meta .countdown { color: var(--gold); font-weight: 700; }
   .match-meta .live-clock { color: var(--live); font-weight: 800; }
 
@@ -401,7 +407,8 @@ function matchupHTML(m) {
 }
 
 function roundHTML(title, matches) {
-  return `<div class="round"><div class="round-title">${title}</div>${matches.map(matchupHTML).join("")}</div>`;
+  return `<div class="round"><div class="round-title">${title}</div>` +
+         `<div class="round-body">${matches.map(matchupHTML).join("")}</div></div>`;
 }
 
 function render() {
