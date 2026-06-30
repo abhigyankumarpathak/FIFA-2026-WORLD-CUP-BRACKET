@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FIFA World Cup 2026 — Knockout Bracket</title>
+<style>
+  :root {
+    --usa-blue: #0a2240;
+    --usa-red: #c8102e;
+    --gold: #ffd200;
+    --green: #008f5d;
+    --live: #ff2d4f;
+    --card-bg: rgba(255, 255, 255, 0.06);
+    --card-border: rgba(255, 255, 255, 0.14);
+    --text: #f4f7ff;
+    --muted: #9fb0cc;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    position: relative;
+    overflow-x: auto;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(0, 143, 93, 0.35), transparent 40%),
+      radial-gradient(circle at 85% 15%, rgba(200, 16, 46, 0.35), transparent 42%),
+      radial-gradient(circle at 50% 90%, rgba(255, 210, 0, 0.25), transparent 45%),
+      linear-gradient(135deg, #061226 0%, #0a2240 45%, #10182f 100%);
+    background-attachment: fixed;
+  }
+
+  /* Soccer-pitch lines overlay for the FIFA 2026 themed background */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.12;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.6) 2px, transparent 2px),
+      radial-gradient(circle at 50% 50%, transparent 120px, rgba(255,255,255,0.5) 122px, transparent 124px);
+    background-size: 100% 90px, 100% 100%;
+    background-position: center;
+    background-repeat: repeat-y, no-repeat;
+  }
+
+  header { text-align: center; padding: 48px 20px 20px; position: relative; }
+
+  .host-flags {
+    font-size: 30px; letter-spacing: 10px; margin-bottom: 14px;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+  }
+
+  h1 {
+    font-size: clamp(2rem, 5vw, 4rem);
+    font-weight: 900; text-transform: uppercase; letter-spacing: 2px;
+    background: linear-gradient(90deg, var(--green), var(--gold) 45%, var(--usa-red));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent; line-height: 1.05;
+  }
+
+  .subtitle {
+    margin-top: 12px; color: var(--muted);
+    font-size: clamp(0.9rem, 2vw, 1.15rem); font-weight: 500; letter-spacing: 1px;
+  }
+
+  .badge {
+    display: inline-block; margin-top: 18px; padding: 8px 22px;
+    border: 1px solid var(--gold); border-radius: 999px; color: var(--gold);
+    font-weight: 700; font-size: 0.85rem; letter-spacing: 2px;
+    text-transform: uppercase; background: rgba(255, 210, 0, 0.08);
+  }
+
+  /* Live ticker bar */
+  .live-bar {
+    max-width: 900px; margin: 22px auto 0; padding: 0 20px;
+    display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
+  }
+  .live-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 7px 14px; border-radius: 999px;
+    background: rgba(255, 45, 79, 0.12); border: 1px solid var(--live);
+    font-size: 0.82rem; font-weight: 700;
+  }
+  .live-pill .dot {
+    width: 9px; height: 9px; border-radius: 50%; background: var(--live);
+    animation: pulse 1.2s infinite;
+  }
+  .live-bar .none { color: var(--muted); font-size: 0.82rem; font-style: italic; }
+
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255, 45, 79, 0.7); }
+    70% { box-shadow: 0 0 0 8px rgba(255, 45, 79, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 45, 79, 0); }
+  }
+
+  .bracket-wrap { overflow-x: auto; padding: 26px 40px 70px; }
+
+  .bracket {
+    display: flex; gap: 46px; min-width: max-content;
+    margin: 0 auto; align-items: stretch; justify-content: center;
+  }
+
+  .round {
+    display: flex; flex-direction: column; justify-content: space-around;
+    gap: 16px; min-width: 220px;
+  }
+
+  .round-title {
+    text-align: center; text-transform: uppercase; letter-spacing: 2px;
+    font-size: 0.78rem; font-weight: 800; color: var(--gold);
+    margin-bottom: 8px; padding-bottom: 6px;
+    border-bottom: 2px solid rgba(255, 210, 0, 0.3);
+  }
+
+  .matchup {
+    position: relative;
+    background: var(--card-bg); border: 1px solid var(--card-border);
+    border-radius: 10px; overflow: hidden; backdrop-filter: blur(6px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+    transition: transform 0.15s ease, border-color 0.15s ease;
+  }
+  .matchup:hover { transform: translateY(-2px) scale(1.02); border-color: var(--gold); }
+
+  .matchup.is-live {
+    border-color: var(--live);
+    box-shadow: 0 0 0 1px var(--live), 0 0 22px rgba(255, 45, 79, 0.45);
+    animation: liveglow 1.6s ease-in-out infinite;
+  }
+  @keyframes liveglow {
+    0%, 100% { box-shadow: 0 0 0 1px var(--live), 0 0 14px rgba(255, 45, 79, 0.35); }
+    50% { box-shadow: 0 0 0 1px var(--live), 0 0 26px rgba(255, 45, 79, 0.6); }
+  }
+
+  .status-tag {
+    position: absolute; top: 6px; right: 6px;
+    font-size: 0.6rem; font-weight: 800; letter-spacing: 1px;
+    padding: 2px 7px; border-radius: 5px; text-transform: uppercase; z-index: 2;
+  }
+  .status-tag.live { background: var(--live); color: #fff; display: inline-flex; align-items: center; gap: 5px; }
+  .status-tag.live .dot { width: 7px; height: 7px; border-radius: 50%; background: #fff; animation: pulse 1.2s infinite; }
+  .status-tag.ft { background: rgba(255,255,255,0.16); color: var(--muted); }
+
+  .team {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 12px; font-size: 0.86rem; font-weight: 600;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .team:last-child { border-bottom: none; }
+  .team .flag { margin-right: 8px; }
+  .team .name { flex: 1; }
+  .team .score {
+    color: var(--muted); font-variant-numeric: tabular-nums;
+    font-weight: 700; min-width: 28px; text-align: center;
+  }
+
+  .team.winner { background: linear-gradient(90deg, rgba(0, 143, 93, 0.35), transparent); color: #fff; }
+  .team.winner .score { color: var(--gold); }
+  .matchup.is-live .team .score { color: var(--live); }
+  .team.tbd { color: var(--muted); font-style: italic; font-weight: 500; }
+
+  .match-meta {
+    display: flex; flex-direction: column; gap: 2px;
+    padding: 6px 12px 8px; background: rgba(0,0,0,0.18);
+    font-size: 0.68rem; color: var(--muted); line-height: 1.3;
+  }
+  .match-meta .when { color: #cdd9ee; font-weight: 600; }
+  .match-meta .countdown { color: var(--gold); font-weight: 700; }
+
+  .final-col {
+    display: flex; flex-direction: column; justify-content: center;
+    align-items: center; gap: 18px; min-width: 250px;
+  }
+  .trophy {
+    font-size: 64px; filter: drop-shadow(0 6px 14px rgba(255, 210, 0, 0.5));
+    animation: float 3.5s ease-in-out infinite;
+  }
+  @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+  .final-matchup {
+    border: 2px solid var(--gold); border-radius: 14px;
+    background: rgba(255, 210, 0, 0.08);
+    box-shadow: 0 0 30px rgba(255, 210, 0, 0.25); width: 100%;
+  }
+  .final-matchup .round-title { color: #fff; border: none; margin: 10px 0 0; }
+  .final-matchup .team { font-size: 0.95rem; padding: 12px 14px; }
+
+  .champion {
+    text-align: center; color: var(--gold); font-weight: 800;
+    letter-spacing: 1px; font-size: 0.85rem; text-transform: uppercase; min-height: 1em;
+  }
+
+  footer {
+    text-align: center; padding: 26px 20px 50px; color: var(--muted);
+    font-size: 0.8rem; border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  footer strong { color: var(--gold); }
+  footer code {
+    background: rgba(255,255,255,0.08); padding: 2px 7px; border-radius: 5px;
+    color: var(--gold); font-size: 0.85em;
+  }
+
+  @media (max-width: 700px) {
+    .bracket-wrap { padding: 20px 12px 60px; }
+    .bracket { gap: 26px; }
+    .round { min-width: 180px; }
+  }
+</style>
+</head>
+<body>
+
+  <header>
+    <div class="host-flags">🇨🇦 🇺🇸 🇲🇽</div>
+    <h1>FIFA World Cup 2026</h1>
+    <p class="subtitle">Canada · Mexico · United States — 48 Teams, 16 Cities</p>
+    <span class="badge">Knockout Stage Bracket</span>
+    <div class="live-bar" id="liveBar"></div>
+  </header>
+
+  <div class="bracket-wrap">
+    <div class="bracket" id="bracket"></div>
+  </div>
+
+  <footer>
+    <p><strong>FIFA World Cup 2026™</strong> — The first 48-team tournament, hosted across Canada 🇨🇦, the United States 🇺🇸, and Mexico 🇲🇽.</p>
+    <p style="margin-top:8px;">To update: edit the <code>DATA</code> block at the top of the script. Set a match's
+      <code>status</code> to <code>"live"</code>, <code>"ft"</code> (full-time), or <code>"upcoming"</code>.</p>
+  </footer>
+
+<script>
+/* =========================================================================
+   ⚽  EDIT EVERYTHING HERE — this is the only block you need to touch.
+   -------------------------------------------------------------------------
+   For each match:
+     a / b    -> { team, flag, score }   (use the flag emoji you like)
+     kickoff  -> ISO date-time WITH a timezone offset, e.g.
+                 "2026-07-04T19:00:00-04:00"  (-04:00 = US Eastern in summer).
+                 It is shown to every visitor in THEIR OWN local time, with a
+                 live countdown until the match starts.
+     status   -> "auto" | "upcoming" | "live" | "ft"
+                  "auto"     = decided from kickoff + the clock (recommended):
+                               counts down, flips to LIVE at kickoff, then to
+                               full-time after LIVE_WINDOW_MIN minutes.
+                  "live"     = force the pulsing red LIVE indicator on.
+                  "ft"       = force full-time; winner auto-highlighted.
+                  "upcoming" = force greyed/scheduled (scores hidden).
+     winner   -> "a", "b", or "" (auto for ft if scores differ). For a penalty
+                 win set winner manually + add  pens:true  and put the shootout
+                 in the score, e.g. score:"1 (4)".
+   Use "" for an unknown team and it shows as TBD.
+   The bracket is Round of 32 -> Round of 16 -> QF -> SF -> Final, mirrored
+   around the centre trophy. Top 16 teams = LEFT half, bottom 16 = RIGHT half.
+   ========================================================================= */
+
+const LIVE_WINDOW_MIN = 130;  // minutes a match is treated as "live" after kickoff (90 + half-time + stoppage buffer)
+
+const DATA = {
+  // ----- LEFT HALF -----
+  leftR32: [
+    { kickoff:"2026-06-28T16:00:00-04:00", a:{team:"South Africa", flag:"🇿🇦", score:0}, b:{team:"Canada",      flag:"🇨🇦", score:1}, status:"ft" },
+    { kickoff:"2026-06-29T14:00:00-04:00", a:{team:"Netherlands",  flag:"🇳🇱", score:0}, b:{team:"Morocco",     flag:"🇲🇦", score:0}, status:"live" },
+    { kickoff:"2026-06-29T12:00:00-04:00", a:{team:"Germany",      flag:"🇩🇪", score:"1 (3)"}, b:{team:"Paraguay", flag:"🇵🇾", score:"1 (4)"}, status:"ft", winner:"b", pens:true },
+    { kickoff:"2026-06-30T17:00:00-04:00", a:{team:"France",       flag:"🇫🇷", score:""}, b:{team:"Sweden",      flag:"🇸🇪", score:""}, status:"auto" },
+    { kickoff:"2026-07-01T16:00:00-04:00", a:{team:"Belgium",      flag:"🇧🇪", score:""}, b:{team:"Senegal",     flag:"🇸🇳", score:""}, status:"auto" },
+    { kickoff:"2026-07-01T20:00:00-04:00", a:{team:"USA",          flag:"🇺🇸", score:""}, b:{team:"Bosnia and Herzegovina", flag:"🇧🇦", score:""}, status:"auto" },
+    { kickoff:"2026-07-02T15:00:00-04:00", a:{team:"Spain",        flag:"🇪🇸", score:""}, b:{team:"Austria",     flag:"🇦🇹", score:""}, status:"auto" },
+    { kickoff:"2026-07-02T19:00:00-04:00", a:{team:"Portugal",     flag:"🇵🇹", score:""}, b:{team:"Croatia",     flag:"🇭🇷", score:""}, status:"auto" },
+  ],
+  leftR16: [
+    { kickoff:"2026-07-04T13:00:00-04:00", a:{team:"Canada",   flag:"🇨🇦", score:""}, b:{team:"", flag:"", score:""}, status:"auto" },
+    { kickoff:"2026-07-04T17:00:00-04:00", a:{team:"Paraguay", flag:"🇵🇾", score:""}, b:{team:"", flag:"", score:""}, status:"auto" },
+    { kickoff:"2026-07-06T20:00:00-04:00", a:{team:"",         flag:"", score:""}, b:{team:"", flag:"", score:""}, status:"auto" },
+    { kickoff:"2026-07-06T15:00:00-04:00", a:{team:"",         flag:"", score:""}, b:{team:"", flag:"", score:""}, status:"auto" },
+  ],
+  leftQF: [
+    { kickoff:"2026-07-09T16:00:00-04:00", a:{team:"", flag:"", score:""}, b:{team:"", flag:"", score:""}, status:"auto" },
+    { kickoff:"2026-07-10T15:00:00-04:00", a:{team:"", flag:"", score:""}, b:{team:"", flag:"", score:""}, status:"auto" },
+  ],
+  leftSF: [
+    { kickoff:"2026-07-14T15:00:00-04:00", a:{team:"", flag:"", score:""}, b:{team:"", flag:"", score:""}, status:"auto" },
+  ],
+
+  // ----- RIGHT HALF -----
+  rightR32: [
+    { kickoff:"2026-06-29T10:00:00-04:00", a:{team:"Brazil",        flag:"🇧🇷", score:2}, b:{team:"Japan",     flag:"🇯🇵", score:1}, status:"ft" },
+    { kickoff:"2026-06-30T13:00:00-04:00", a:{team:"Côte d'Ivoire", flag:"🇨🇮", score:""}, b:{team:"Norway",   flag:"🇳🇴", score:""}, status:"auto" },
+    { kickoff:"2026-06-30T21:00:00-04:00", a:{team:"Mexico",        flag:"🇲🇽", score:""}, b:{team:"Ecuador",  flag:"🇪🇨", score:""}, status:"auto" },
+    { kickoff:"2026-07-01T12:00:00-04:00", a:{team:"England",       flag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿", score:""}, b:{team:"DR Congo", flag:"🇨🇩", score:""}, status:"auto" },
+    { kickoff:"2026-07-02T23:00:00-04:00", a:{team:"Switzerland",   flag:"🇨🇭", score:""}, b:{team:"Algeria",  flag:"🇩🇿", score:""}, status:"auto" },
+    { kickoff:"2026-07-03T21:30:00-04:00", a:{team:"Colombia",      flag:"🇨🇴", score:""}, b:{team:"Ghana",    flag:"🇬🇭", score:""}, status:"auto" },
+    { kickoff:"2026-07-03T14:00:00-04:00", a:{team:"Australia",     flag:"🇦🇺", score:""}, b:{team:"Egypt",    flag:"🇪🇬", score:""}, status:"auto" },
+    { kickoff:"2026-07-03T18:00:00-04:00", a:{team:"Argentina",     flag:"🇦🇷", score:""}, b:{team:"Cabo Verde", flag:"🇨🇻", score:""}, status:"auto" },
+  ],
+  rightR16: [
+    { kickoff:"2026-07-05T16:00:00-04:00", a:{team:"Brazil", flag:"🇧🇷", score:""}, b:{team:"", flag:"", score:""}, status:"auto" },
+    { kickoff:"2026-07-05T20:00:00-04:00", a:{team:"",       flag:"", score:""}, b:{team:"", flag:"", score:""}, status:"auto" },
+    { kickoff:"2026-07-07T16:00:00-04:00", a:{team:"",       flag:"", score:""}, b:{team:"", flag:"", score:""}, status:"auto" },
+    { kickoff:"2026-07-07T12:00:00-04:00", a:{team:"",       flag:"", score:""}, b:{team:"", flag:"", score:""}, status:"auto" },
+  ],
+  rightQF: [
+    { kickoff:"2026-07-11T17:00:00-04:00", a:{team:"", flag:"", score:""}, b:{team:"", flag:"", score:""}, status:"auto" },
+    { kickoff:"2026-07-11T21:00:00-04:00", a:{team:"", flag:"", score:""}, b:{team:"", flag:"", score:""}, status:"auto" },
+  ],
+  rightSF: [
+    { kickoff:"2026-07-15T15:00:00-04:00", a:{team:"", flag:"", score:""}, b:{team:"", flag:"", score:""}, status:"auto" },
+  ],
+
+  // ----- FINAL -----
+  final:    { kickoff:"2026-07-19T15:00:00-04:00", a:{team:"", flag:"", score:""}, b:{team:"", flag:"", score:""}, status:"auto" },
+  champion: "",   // type the champion's name once decided, e.g. "Argentina"
+};
+/* ===================  no need to edit below this line  =================== */
+
+// Resolve "auto" status into upcoming / live / ft using kickoff + the clock.
+function effectiveStatus(m) {
+  if (m.status !== "auto") return m.status;
+  if (!m.kickoff) return "upcoming";
+  const start = new Date(m.kickoff).getTime();
+  const now = Date.now();
+  if (now < start) return "upcoming";
+  if (now < start + LIVE_WINDOW_MIN * 60000) return "live";
+  return "ft";
+}
+
+function decideWinner(m) {
+  if (m.winner === "a" || m.winner === "b") return m.winner;
+  if (effectiveStatus(m) === "ft" && m.a.score !== "" && m.b.score !== "") {
+    const sa = parseInt(m.a.score, 10), sb = parseInt(m.b.score, 10);
+    if (sa > sb) return "a";
+    if (sb > sa) return "b";
+  }
+  return "";
+}
+
+const FMT_DATE = new Intl.DateTimeFormat(undefined, {
+  weekday:"short", month:"short", day:"numeric",
+  hour:"numeric", minute:"2-digit", timeZoneName:"short",
+});
+
+function countdownText(ms) {
+  if (ms <= 0) return "";
+  const d = Math.floor(ms / 86400000);
+  const h = Math.floor((ms % 86400000) / 3600000);
+  const min = Math.floor((ms % 3600000) / 60000);
+  if (d > 0) return `Kicks off in ${d}d ${h}h`;
+  if (h > 0) return `Kicks off in ${h}h ${min}m`;
+  return `Kicks off in ${min}m`;
+}
+
+function metaHTML(m) {
+  if (!m.kickoff) return "";
+  const when = FMT_DATE.format(new Date(m.kickoff));
+  const st = effectiveStatus(m);
+  let line2 = "";
+  if (st === "upcoming") {
+    const cd = countdownText(new Date(m.kickoff).getTime() - Date.now());
+    if (cd) line2 = `<span class="countdown">${cd}</span>`;
+  }
+  return `<div class="match-meta"><span class="when">🗓 ${when}</span>${line2}</div>`;
+}
+
+function teamRow(t, isWinner, hideScore) {
+  const name = t.team ? `<span class="flag">${t.flag || ""}</span><span class="name">${t.team}</span>`
+                      : `<span class="name tbd">TBD</span>`;
+  const score = hideScore || t.score === "" ? "" : t.score;
+  const cls = `team${isWinner ? " winner" : ""}${!t.team ? " tbd" : ""}`;
+  return `<div class="${cls}"><span>${name}</span><span class="score">${score}</span></div>`;
+}
+
+function matchupHTML(m) {
+  const win = decideWinner(m);
+  const st = effectiveStatus(m);
+  const live = st === "live";
+  const hideScore = st === "upcoming";
+  let tag = "";
+  if (live) tag = `<span class="status-tag live"><span class="dot"></span>LIVE</span>`;
+  else if (st === "ft") tag = `<span class="status-tag ft">FT${m.pens ? " (P)" : ""}</span>`;
+  return `<div class="matchup${live ? " is-live" : ""}">
+    ${tag}
+    ${teamRow(m.a, win === "a", hideScore)}
+    ${teamRow(m.b, win === "b", hideScore)}
+    ${metaHTML(m)}
+  </div>`;
+}
+
+function roundHTML(title, matches) {
+  return `<div class="round"><div class="round-title">${title}</div>${matches.map(matchupHTML).join("")}</div>`;
+}
+
+function render() {
+  const bracket = document.getElementById("bracket");
+  const finalHTML = `<div class="final-col">
+      <div class="trophy">🏆</div>
+      <div class="final-matchup">
+        <div class="round-title">The Final</div>
+        ${(() => {
+          const m = DATA.final, win = decideWinner(m), hide = m.status === "upcoming";
+          return teamRow(m.a, win === "a", hide) + teamRow(m.b, win === "b", hide);
+        })()}
+      </div>
+      <div class="champion">${DATA.champion ? "🥇 Champions: " + DATA.champion : ""}</div>
+    </div>`;
+
+  bracket.innerHTML =
+    roundHTML("Round of 32", DATA.leftR32) +
+    roundHTML("Round of 16", DATA.leftR16) +
+    roundHTML("Quarter-finals", DATA.leftQF) +
+    roundHTML("Semi-final", DATA.leftSF) +
+    finalHTML +
+    roundHTML("Semi-final", DATA.rightSF) +
+    roundHTML("Quarter-finals", DATA.rightQF) +
+    roundHTML("Round of 16", DATA.rightR16) +
+    roundHTML("Round of 32", DATA.rightR32);
+
+  // Build the live ticker
+  const all = [
+    ...DATA.leftR32, ...DATA.leftR16, ...DATA.leftQF, ...DATA.leftSF,
+    ...DATA.rightR32, ...DATA.rightR16, ...DATA.rightQF, ...DATA.rightSF,
+    DATA.final,
+  ];
+  const liveGames = all.filter(m => effectiveStatus(m) === "live");
+  const bar = document.getElementById("liveBar");
+  if (liveGames.length) {
+    bar.innerHTML = liveGames.map(m =>
+      `<span class="live-pill"><span class="dot"></span>${m.a.flag} ${m.a.team || "TBD"} ${m.a.score}–${m.b.score} ${m.b.team || "TBD"} ${m.b.flag}</span>`
+    ).join("");
+  } else {
+    bar.innerHTML = `<span class="none">No matches live right now</span>`;
+  }
+}
+
+render();
+// Re-render every 30s so countdowns tick down and "auto" matches flip
+// from upcoming -> LIVE -> full-time on their own as kickoff passes.
+setInterval(render, 30000);
+</script>
+</body>
+</html>
