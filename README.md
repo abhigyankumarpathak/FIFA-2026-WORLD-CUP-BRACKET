@@ -77,6 +77,9 @@ The `status` field controls the badge and behavior:
 **Most of the time you should leave matches on `"auto"`** — they go live and finish on
 their own based on `kickoff`. Just keep the `score` updated while it's live.
 
+When a match goes **live**, any blank score automatically shows **0** — so a kickoff
+displays as **0–0** without you typing anything. Update the numbers as goals go in.
+
 ### "Starting soon" highlight
 In the **hour before kickoff**, an `"auto"` match glows gold with a **⏳ SOON** tag.
 Change how early that starts by editing this line near the top of the script:

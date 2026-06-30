@@ -405,12 +405,14 @@ function metaHTML(m) {
   return `<div class="match-meta"><span class="when">🗓 ${when}</span>${line2}</div>`;
 }
 
-function teamRow(t, isWinner, hideScore) {
+function teamRow(t, isWinner, hideScore, liveZero) {
   let name;
   if (t.team) name = `<span class="flag">${t.flag || ""}</span><span class="name">${t.team}</span>`;
   else name = `<span class="name tbd">🛡 TBD</span>`;
   const hasScore = t.score !== "" && t.score != null;
-  const score = (hideScore || !hasScore) ? "" : t.score;
+  // Live match with no score entered yet -> show 0 automatically.
+  let score = "";
+  if (!hideScore) score = hasScore ? t.score : (liveZero ? 0 : "");
   const cls = `team${isWinner ? " winner" : ""}${!t.team ? " tbd" : ""}`;
   return `<div class="${cls}"><span>${name}</span><span class="score">${score}</span></div>`;
 }
@@ -427,8 +429,8 @@ function matchupHTML(m) {
   else if (st === "ft") tag = `<span class="status-tag ft">FT${m.pens ? " (P)" : ""}</span>`;
   return `<div class="matchup${live ? " is-live" : ""}${soon ? " is-soon" : ""}${tag ? " has-tag" : ""}">
     ${tag}
-    ${teamRow(m.a, win === "a", hideScore)}
-    ${teamRow(m.b, win === "b", hideScore)}
+    ${teamRow(m.a, win === "a", hideScore, live)}
+    ${teamRow(m.b, win === "b", hideScore, live)}
     ${metaHTML(m)}
   </div>`;
 }
@@ -448,16 +450,16 @@ function render() {
       <div class="final-matchup">
         <div class="round-title">The Final · Jul 19</div>
         ${(() => {
-          const m = DATA.final, win = decideWinner(m), hide = ["upcoming","soon"].includes(effectiveStatus(m));
-          return teamRow(m.a, win === "a", hide) + teamRow(m.b, win === "b", hide);
+          const m = DATA.final, win = decideWinner(m), st = effectiveStatus(m), hide = ["upcoming","soon"].includes(st);
+          return teamRow(m.a, win === "a", hide, st === "live") + teamRow(m.b, win === "b", hide, st === "live");
         })()}
       </div>
       <div class="champion">${DATA.champion ? "🥇 Champions: " + DATA.champion : ""}</div>
       <div class="thirdplace-matchup">
         <div class="round-title">🥉 3rd-Place · Jul 18</div>
         ${(() => {
-          const m = DATA.thirdPlace, win = decideWinner(m), hide = ["upcoming","soon"].includes(effectiveStatus(m));
-          return teamRow(m.a, win === "a", hide) + teamRow(m.b, win === "b", hide);
+          const m = DATA.thirdPlace, win = decideWinner(m), st = effectiveStatus(m), hide = ["upcoming","soon"].includes(st);
+          return teamRow(m.a, win === "a", hide, st === "live") + teamRow(m.b, win === "b", hide, st === "live");
         })()}
       </div>
     </div>`;
@@ -481,8 +483,9 @@ function render() {
   const liveGames = all.filter(m => effectiveStatus(m) === "live");
   const bar = document.getElementById("liveBar");
   if (liveGames.length) {
+    const sc = v => (v === "" || v == null) ? 0 : v;  // live games default to 0
     bar.innerHTML = liveGames.map(m =>
-      `<span class="live-pill"><span class="dot"></span>${m.a.flag} ${m.a.team || "TBD"} ${m.a.score}–${m.b.score} ${m.b.team || "TBD"} ${m.b.flag}${m.clock ? " · " + m.clock : ""}</span>`
+      `<span class="live-pill"><span class="dot"></span>${m.a.flag} ${m.a.team || "TBD"} ${sc(m.a.score)}–${sc(m.b.score)} ${m.b.team || "TBD"} ${m.b.flag}${m.clock ? " · " + m.clock : ""}</span>`
     ).join("");
   } else {
     bar.innerHTML = `<span class="none">No matches live right now</span>`;
