@@ -69,7 +69,7 @@ The `status` field controls the badge and behavior:
 
 | `status` | What you see |
 |----------|--------------|
-| `"auto"` | **Recommended.** The site figures it out from the clock: counts down before kickoff → flips to **🔴 LIVE** at kickoff → flips to **FT** after the match window. |
+| `"auto"` | **Recommended.** The site figures it out from the clock: counts down → glows gold **⏳ SOON** in the final hour before kickoff → flips to **🔴 LIVE** at kickoff → flips to **FT** after the match window. |
 | `"live"` | Forces the pulsing red **LIVE** badge on (use only if you want to override the clock). |
 | `"ft"`   | Forces **full-time**; winner highlighted from the score. |
 | `"upcoming"` | Forces the greyed "scheduled" look (hides scores). |
@@ -77,12 +77,20 @@ The `status` field controls the badge and behavior:
 **Most of the time you should leave matches on `"auto"`** — they go live and finish on
 their own based on `kickoff`. Just keep the `score` updated while it's live.
 
+### "Starting soon" highlight
+In the **hour before kickoff**, an `"auto"` match glows gold with a **⏳ SOON** tag.
+Change how early that starts by editing this line near the top of the script:
+
+```js
+const SOON_WINDOW_MIN = 60;   // minutes before kickoff a match is highlighted as "starting soon"
+```
+
 ### How long a game stays "LIVE"
-A match counts as live for **130 minutes** after kickoff, then auto-flips to FT.
+A match counts as live for **180 minutes** after kickoff, then auto-flips to FT.
 To change that, edit this line near the top of the script:
 
 ```js
-const LIVE_WINDOW_MIN = 130;  // minutes a match counts as "live" after kickoff
+const LIVE_WINDOW_MIN = 180;  // minutes a match counts as "live" after kickoff
 ```
 
 ---
@@ -171,3 +179,4 @@ the live site updates automatically a minute or two after you push.
 | Advance a team | Replace `{ph:"…"}` with `{team:"…", flag:"…", score:""}` |
 | Set the winner of the tournament | `champion: "Team Name"` |
 | Change how long "LIVE" lasts | Edit `LIVE_WINDOW_MIN` |
+| Change when "SOON" starts | Edit `SOON_WINDOW_MIN` |

@@ -155,6 +155,19 @@
   .status-tag.live { background: var(--live); color: #fff; display: inline-flex; align-items: center; gap: 5px; }
   .status-tag.live .dot { width: 7px; height: 7px; border-radius: 50%; background: #fff; animation: pulse 1.2s infinite; }
   .status-tag.ft { background: rgba(255,255,255,0.16); color: var(--muted); }
+  .status-tag.soon { background: var(--gold); color: #1a1300; }
+
+  /* "Starting soon" — highlighted in the hour before kickoff */
+  .matchup.is-soon {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 1px var(--gold), 0 0 20px rgba(255, 210, 0, 0.4);
+    animation: soonglow 1.8s ease-in-out infinite;
+  }
+  @keyframes soonglow {
+    0%, 100% { box-shadow: 0 0 0 1px var(--gold), 0 0 12px rgba(255, 210, 0, 0.3); }
+    50% { box-shadow: 0 0 0 1px var(--gold), 0 0 24px rgba(255, 210, 0, 0.55); }
+  }
+  .match-meta .countdown.soon { color: var(--gold); }
 
   .team {
     display: flex; align-items: center; justify-content: space-between;
@@ -269,7 +282,8 @@
                  (-04:00 = U.S. Eastern in summer). Always DISPLAYED in ET.
      status   -> "auto" | "upcoming" | "live" | "ft"
                   "auto" = decided from kickoff + the clock (counts down,
-                           flips to LIVE at kickoff, then FT after the window).
+                           highlights as SOON in the final hour, flips to LIVE
+                           at kickoff, then FT after the window).
                   "live" = force pulsing LIVE badge.  add  clock:"45'+5'"  to
                            show the match minute.
                   "ft"   = full-time; winner auto-highlighted from the score.
@@ -278,6 +292,7 @@
    ========================================================================= */
 
 const LIVE_WINDOW_MIN = 180;  // minutes a match counts as "live" after kickoff
+const SOON_WINDOW_MIN = 60;   // minutes before kickoff a match is highlighted as "starting soon"
 
 const DATA = {
   // ----- ROUND OF 32 — all 16 fixtures (shown as the grid above the bracket) -----
@@ -335,13 +350,15 @@ const DATA = {
 };
 /* ===================  no need to edit below this line  =================== */
 
-// Resolve "auto" status into upcoming / live / ft using kickoff + the clock.
+// Resolve "auto" status into upcoming / soon / live / ft using kickoff + the clock.
+// "soon" = highlighted in the final hour before kickoff.
 function effectiveStatus(m) {
   if (m.status !== "auto") return m.status;
   if (!m.kickoff) return "upcoming";
   const start = new Date(m.kickoff).getTime();
   const now = Date.now();
-  if (now < start) return "upcoming";
+  if (now < start - SOON_WINDOW_MIN * 60000) return "upcoming";
+  if (now < start) return "soon";
   if (now < start + LIVE_WINDOW_MIN * 60000) return "live";
   return "ft";
 }
@@ -381,9 +398,9 @@ function metaHTML(m) {
   let line2 = "";
   if (st === "live" && m.clock) {
     line2 = `<span class="live-clock">⏱ ${m.clock}</span>`;
-  } else if (st === "upcoming") {
+  } else if (st === "upcoming" || st === "soon") {
     const cd = countdownText(new Date(m.kickoff).getTime() - Date.now());
-    if (cd) line2 = `<span class="countdown">${cd}</span>`;
+    if (cd) line2 = `<span class="countdown${st === "soon" ? " soon" : ""}">${cd}</span>`;
   }
   return `<div class="match-meta"><span class="when">🗓 ${when}</span>${line2}</div>`;
 }
@@ -402,11 +419,13 @@ function matchupHTML(m) {
   const win = decideWinner(m);
   const st = effectiveStatus(m);
   const live = st === "live";
-  const hideScore = st === "upcoming";
+  const soon = st === "soon";
+  const hideScore = st === "upcoming" || st === "soon";
   let tag = "";
   if (live) tag = `<span class="status-tag live"><span class="dot"></span>LIVE</span>`;
+  else if (soon) tag = `<span class="status-tag soon">⏳ SOON</span>`;
   else if (st === "ft") tag = `<span class="status-tag ft">FT${m.pens ? " (P)" : ""}</span>`;
-  return `<div class="matchup${live ? " is-live" : ""}${tag ? " has-tag" : ""}">
+  return `<div class="matchup${live ? " is-live" : ""}${soon ? " is-soon" : ""}${tag ? " has-tag" : ""}">
     ${tag}
     ${teamRow(m.a, win === "a", hideScore)}
     ${teamRow(m.b, win === "b", hideScore)}
@@ -429,7 +448,7 @@ function render() {
       <div class="final-matchup">
         <div class="round-title">The Final · Jul 19</div>
         ${(() => {
-          const m = DATA.final, win = decideWinner(m), hide = effectiveStatus(m) === "upcoming";
+          const m = DATA.final, win = decideWinner(m), hide = ["upcoming","soon"].includes(effectiveStatus(m));
           return teamRow(m.a, win === "a", hide) + teamRow(m.b, win === "b", hide);
         })()}
       </div>
@@ -437,7 +456,7 @@ function render() {
       <div class="thirdplace-matchup">
         <div class="round-title">🥉 3rd-Place · Jul 18</div>
         ${(() => {
-          const m = DATA.thirdPlace, win = decideWinner(m), hide = effectiveStatus(m) === "upcoming";
+          const m = DATA.thirdPlace, win = decideWinner(m), hide = ["upcoming","soon"].includes(effectiveStatus(m));
           return teamRow(m.a, win === "a", hide) + teamRow(m.b, win === "b", hide);
         })()}
       </div>
