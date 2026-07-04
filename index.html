@@ -306,7 +306,7 @@
                  the shootout in the score, e.g. score:"1 (4)".
    ========================================================================= */
 
-const LIVE_WINDOW_MIN = 180;  // minutes a match counts as "live" after kickoff
+const LIVE_WINDOW_MIN = 150;  // minutes a match counts as "live" after kickoff
 const SOON_WINDOW_MIN = 60;   // minutes before kickoff a match is highlighted as "starting soon"
 
 const DATA = {
@@ -333,7 +333,7 @@ const DATA = {
   // ===== BRACKET (Round of 16 -> Final). LEFT half = top of the draw, RIGHT half = bottom. =====
   leftR16: [
     { kickoff:"2026-07-04T17:00:00-04:00", a:{team:"Paraguay", flag:"🇵🇾", score:""}, b:{team:"France",   flag:"🇫🇷", score:""},  status:"auto" }, // Match 89
-    { kickoff:"2026-07-04T13:00:00-04:00", a:{team:"Canada",   flag:"🇨🇦", score:0}, b:{team:"Morocco",   flag:"🇲🇦", score:3},  status:"auto" }, // Match 90
+    { kickoff:"2026-07-04T13:00:00-04:00", a:{team:"Canada",   flag:"🇨🇦", score:0}, b:{team:"Morocco",   flag:"🇲🇦", score:3},  status:"ft" }, // Match 90
     { kickoff:"2026-07-06T15:00:00-04:00", a:{team:"Portugal", flag:"🇵🇹", score:""}, b:{team:"Spain", flag:"🇪🇸", score:""}, status:"auto" }, // Match 93
     { kickoff:"2026-07-06T20:00:00-04:00", a:{team:"USA", flag:"🇺🇸", score:""}, b:{team:"Belgium", flag:"🇧🇪", score:""}, status:"auto" }, // Match 94
   ],
