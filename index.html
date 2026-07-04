@@ -250,8 +250,10 @@
   }
 
   @media (max-width: 700px) {
-    .bracket-wrap { padding: 14px 6px 50px; }
-    .bracket { gap: 4px; }
+    /* On phones the 7-column bracket is too wide to fit — let it scroll
+       sideways instead of cramming. Desktop stays fit-to-screen. */
+    .bracket-wrap { padding: 14px 6px 50px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .bracket { gap: 4px; width: 760px; min-width: 760px; justify-content: flex-start; }
     .team { font-size: 0.66rem; padding: 6px 5px; }
     .team .flag { margin-right: 4px; }
     .team .score { min-width: 20px; }
