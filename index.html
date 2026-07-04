@@ -17,7 +17,7 @@
     --muted: #9fb0cc;
     /* Vertical offset for the finals column (trophy + Final box + 3rd place).
        Negative = up, positive = down. Tweak this one value. */
-    --final-offset: -30px;
+    --final-offset: -40px;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -218,7 +218,8 @@
   .final-matchup {
     position: relative; z-index: 1;
     border: 2px solid var(--gold); border-radius: 14px;
-    background: rgba(255, 210, 0, 0.08);
+    /* Opaque base under the gold tint so connector lines don't show through */
+    background: linear-gradient(rgba(255, 210, 0, 0.08), rgba(255, 210, 0, 0.08)), #0a0a0a;
     box-shadow: 0 0 30px rgba(255, 210, 0, 0.25); width: 100%;
   }
   .final-matchup .round-title { color: #fff; border: none; margin: 10px 0 0; }
@@ -231,7 +232,8 @@
 
   .thirdplace-matchup {
     border: 1px solid #cd7f32; border-radius: 12px;
-    background: rgba(205, 127, 50, 0.08);
+    /* Opaque base under the bronze tint so connector lines don't show through */
+    background: linear-gradient(rgba(205, 127, 50, 0.08), rgba(205, 127, 50, 0.08)), #0a0a0a;
     box-shadow: 0 0 18px rgba(205, 127, 50, 0.2); width: 100%;
   }
   .thirdplace-matchup .round-title { color: #e3a866; border-color: rgba(205,127,50,0.35); margin: 10px 0 0; }
