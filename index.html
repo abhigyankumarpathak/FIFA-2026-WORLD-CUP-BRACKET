@@ -473,51 +473,64 @@ function drawConnectors() {
 
   const rel = el => {
     const r = el.getBoundingClientRect();
-    return { left: r.left - base.left, right: r.right - base.left, cy: (r.top + r.bottom) / 2 - base.top };
+    // Anchor connectors to the border dividing the two team rows, not the card centre.
+    const rows = el.querySelectorAll(".team");
+    const divider = rows.length >= 2 ? rows[0].getBoundingClientRect().bottom : (r.top + r.bottom) / 2;
+    return { left: r.left - base.left, right: r.right - base.left, y: divider - base.top };
   };
-  const line = (x1, y1, x2, y2) => {
+  const line = (x1, y1, x2, y2, color) => {
     const l = document.createElementNS(SVGNS, "line");
     l.setAttribute("x1", x1); l.setAttribute("y1", y1);
     l.setAttribute("x2", x2); l.setAttribute("y2", y2);
-    l.setAttribute("stroke", "rgba(255,210,0,0.33)");
+    l.setAttribute("stroke", color);
     l.setAttribute("stroke-width", "2");
     l.setAttribute("stroke-linecap", "round");
     svg.appendChild(l);
   };
   // Two matchups (top/bot) merging into one target in the next column.
   // dir "lr" = sources on the left of target, "rl" = sources on the right.
-  const pair = (top, bot, target, dir) => {
+  const pair = (top, bot, target, dir, color) => {
     const t = rel(top), b = rel(bot), g = rel(target);
     if (dir === "lr") {
       const mx = (Math.max(t.right, b.right) + g.left) / 2;
-      line(t.right, t.cy, mx, t.cy); line(b.right, b.cy, mx, b.cy);
-      line(mx, t.cy, mx, b.cy); line(mx, g.cy, g.left, g.cy);
+      line(t.right, t.y, mx, t.y, color); line(b.right, b.y, mx, b.y, color);
+      line(mx, t.y, mx, b.y, color); line(mx, g.y, g.left, g.y, color);
     } else {
       const mx = (Math.min(t.left, b.left) + g.right) / 2;
-      line(t.left, t.cy, mx, t.cy); line(b.left, b.cy, mx, b.cy);
-      line(mx, t.cy, mx, b.cy); line(mx, g.cy, g.right, g.cy);
+      line(t.left, t.y, mx, t.y, color); line(b.left, b.y, mx, b.y, color);
+      line(mx, t.y, mx, b.y, color); line(mx, g.y, g.right, g.y, color);
     }
   };
-  // A single matchup feeding the target (semi-final -> final).
-  const single = (src, target, dir) => {
+  // A single matchup feeding the target (semi-final -> final or -> 3rd place).
+  const single = (src, target, dir, color) => {
     const s = rel(src), g = rel(target);
     if (dir === "lr") {
       const mx = (s.right + g.left) / 2;
-      line(s.right, s.cy, mx, s.cy); line(mx, s.cy, mx, g.cy); line(mx, g.cy, g.left, g.cy);
+      line(s.right, s.y, mx, s.y, color); line(mx, s.y, mx, g.y, color); line(mx, g.y, g.left, g.y, color);
     } else {
       const mx = (s.left + g.right) / 2;
-      line(s.left, s.cy, mx, s.cy); line(mx, s.cy, mx, g.cy); line(mx, g.cy, g.right, g.cy);
+      line(s.left, s.y, mx, s.y, color); line(mx, s.y, mx, g.y, color); line(mx, g.y, g.right, g.y, color);
     }
   };
 
-  pair(L16[0], L16[1], LQF[0], "lr");
-  pair(L16[2], L16[3], LQF[1], "lr");
-  pair(LQF[0], LQF[1], LSF[0], "lr");
-  single(LSF[0], finalMatch, "lr");
-  pair(R16[0], R16[1], RQF[0], "rl");
-  pair(R16[2], R16[3], RQF[1], "rl");
-  pair(RQF[0], RQF[1], RSF[0], "rl");
-  single(RSF[0], finalMatch, "rl");
+  const GOLD = "rgba(255,210,0,0.22)";
+  const BRONZE = "rgba(205,127,50,0.32)";
+  const thirdMatch = bracket.querySelector(".thirdplace-matchup");
+
+  pair(L16[0], L16[1], LQF[0], "lr", GOLD);
+  pair(L16[2], L16[3], LQF[1], "lr", GOLD);
+  pair(LQF[0], LQF[1], LSF[0], "lr", GOLD);
+  single(LSF[0], finalMatch, "lr", GOLD);
+  pair(R16[0], R16[1], RQF[0], "rl", GOLD);
+  pair(R16[2], R16[3], RQF[1], "rl", GOLD);
+  pair(RQF[0], RQF[1], RSF[0], "rl", GOLD);
+  single(RSF[0], finalMatch, "rl", GOLD);
+
+  // Both semi-final losers drop into the 3rd-place match (bronze lines).
+  if (thirdMatch) {
+    single(LSF[0], thirdMatch, "lr", BRONZE);
+    single(RSF[0], thirdMatch, "rl", BRONZE);
+  }
 
   bracket.appendChild(svg);
 }
