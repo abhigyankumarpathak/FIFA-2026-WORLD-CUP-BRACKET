@@ -109,7 +109,9 @@
   .bracket {
     display: flex; gap: clamp(5px, 1.1vw, 30px); width: 100%;
     margin: 0 auto; align-items: stretch; justify-content: center;
+    position: relative;
   }
+  #bracketLines { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 0; overflow: visible; }
   .round {
     display: flex; flex-direction: column; flex: 1 1 0; min-width: 0;
   }
@@ -128,7 +130,7 @@
   }
 
   .matchup {
-    position: relative;
+    position: relative; z-index: 1;
     background: var(--card-bg); border: 1px solid var(--card-border);
     border-radius: 10px; overflow: hidden; backdrop-filter: blur(6px);
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
@@ -210,6 +212,7 @@
   @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
   .final-matchup {
+    position: relative; z-index: 1;
     border: 2px solid var(--gold); border-radius: 14px;
     background: rgba(255, 210, 0, 0.08);
     box-shadow: 0 0 30px rgba(255, 210, 0, 0.25); width: 100%;
@@ -447,6 +450,78 @@ function roundHTML(title, matches) {
          `<div class="round-body">${matches.map(matchupHTML).join("")}</div></div>`;
 }
 
+// Draw the elbow lines that show how each pair of matchups feeds the next round.
+// Computed from the live card positions so they stay aligned as the layout flexes.
+function drawConnectors() {
+  const bracket = document.getElementById("bracket");
+  if (!bracket) return;
+  const existing = document.getElementById("bracketLines");
+  if (existing) existing.remove();
+
+  const rounds = [...bracket.querySelectorAll(":scope > .round")];
+  const finalMatch = bracket.querySelector(".final-matchup");
+  if (rounds.length < 6 || !finalMatch) return;
+  const cards = r => [...r.querySelectorAll(".matchup")];
+  const [L16, LQF, LSF, RSF, RQF, R16] = rounds.map(cards);
+
+  const base = bracket.getBoundingClientRect();
+  const SVGNS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(SVGNS, "svg");
+  svg.id = "bracketLines";
+  svg.setAttribute("width", base.width);
+  svg.setAttribute("height", base.height);
+
+  const rel = el => {
+    const r = el.getBoundingClientRect();
+    return { left: r.left - base.left, right: r.right - base.left, cy: (r.top + r.bottom) / 2 - base.top };
+  };
+  const line = (x1, y1, x2, y2) => {
+    const l = document.createElementNS(SVGNS, "line");
+    l.setAttribute("x1", x1); l.setAttribute("y1", y1);
+    l.setAttribute("x2", x2); l.setAttribute("y2", y2);
+    l.setAttribute("stroke", "rgba(255,210,0,0.33)");
+    l.setAttribute("stroke-width", "2");
+    l.setAttribute("stroke-linecap", "round");
+    svg.appendChild(l);
+  };
+  // Two matchups (top/bot) merging into one target in the next column.
+  // dir "lr" = sources on the left of target, "rl" = sources on the right.
+  const pair = (top, bot, target, dir) => {
+    const t = rel(top), b = rel(bot), g = rel(target);
+    if (dir === "lr") {
+      const mx = (Math.max(t.right, b.right) + g.left) / 2;
+      line(t.right, t.cy, mx, t.cy); line(b.right, b.cy, mx, b.cy);
+      line(mx, t.cy, mx, b.cy); line(mx, g.cy, g.left, g.cy);
+    } else {
+      const mx = (Math.min(t.left, b.left) + g.right) / 2;
+      line(t.left, t.cy, mx, t.cy); line(b.left, b.cy, mx, b.cy);
+      line(mx, t.cy, mx, b.cy); line(mx, g.cy, g.right, g.cy);
+    }
+  };
+  // A single matchup feeding the target (semi-final -> final).
+  const single = (src, target, dir) => {
+    const s = rel(src), g = rel(target);
+    if (dir === "lr") {
+      const mx = (s.right + g.left) / 2;
+      line(s.right, s.cy, mx, s.cy); line(mx, s.cy, mx, g.cy); line(mx, g.cy, g.left, g.cy);
+    } else {
+      const mx = (s.left + g.right) / 2;
+      line(s.left, s.cy, mx, s.cy); line(mx, s.cy, mx, g.cy); line(mx, g.cy, g.right, g.cy);
+    }
+  };
+
+  pair(L16[0], L16[1], LQF[0], "lr");
+  pair(L16[2], L16[3], LQF[1], "lr");
+  pair(LQF[0], LQF[1], LSF[0], "lr");
+  single(LSF[0], finalMatch, "lr");
+  pair(R16[0], R16[1], RQF[0], "rl");
+  pair(R16[2], R16[3], RQF[1], "rl");
+  pair(RQF[0], RQF[1], RSF[0], "rl");
+  single(RSF[0], finalMatch, "rl");
+
+  bracket.appendChild(svg);
+}
+
 function render() {
   // Round of 32 fixtures grid
   document.getElementById("r32grid").innerHTML = DATA.roundOf32.map(matchupHTML).join("");
@@ -497,11 +572,17 @@ function render() {
   } else {
     bar.innerHTML = `<span class="none">No matches live right now</span>`;
   }
+
+  // Trace the bracket flow once the cards are laid out.
+  drawConnectors();
 }
 
 render();
 // Re-render every 30s so countdowns tick and "auto" matches flip on their own.
 setInterval(render, 30000);
+// Keep the connector lines aligned when the layout reflows.
+window.addEventListener("resize", drawConnectors);
+window.addEventListener("load", drawConnectors);
 </script>
 </body>
 </html>
