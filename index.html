@@ -15,6 +15,9 @@
     --card-border: rgba(255, 255, 255, 0.14);
     --text: #f4f7ff;
     --muted: #9fb0cc;
+    /* Vertical offset for the finals column (trophy + Final box + 3rd place).
+       Negative = up, positive = down. Tweak this one value. */
+    --final-offset: -24px;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -204,6 +207,7 @@
   .final-col {
     display: flex; flex-direction: column; justify-content: center;
     align-items: center; gap: 18px; flex: 1.25 1 0; min-width: 0;
+    transform: translateY(var(--final-offset));
   }
   .trophy {
     font-size: 64px; filter: drop-shadow(0 6px 14px rgba(255, 210, 0, 0.5));
