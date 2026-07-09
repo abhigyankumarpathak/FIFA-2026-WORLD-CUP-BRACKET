@@ -315,7 +315,7 @@ const DATA = {
   // ----- ROUND OF 32 — all 16 fixtures (shown as the grid above the bracket) -----
   roundOf32: [
     { kickoff:"2026-06-29T16:30:00-04:00", a:{team:"Germany",  flag:"🇩🇪", score:"1 (3)"}, b:{team:"Paraguay", flag:"🇵🇾", score:"1 (4)"}, status:"ft", winner:"b", pens:true },
-    { kickoff:"2026-06-30T17:00:00-04:00", a:{team:"France",   flag:"🇫🇷", score:3}, b:{team:"Sweden",      flag:"🇸🇪", score:0}, status:"auto"},
+    { kickoff:"2026-06-30T17:00:00-04:00", a:{team:"France",   flag:"🇫🇷", score:3}, b:{team:"Sweden",      flag:"🇸🇪", score:0}, status:"ft"},
     { kickoff:"2026-06-28T15:00:00-04:00", a:{team:"South Africa", flag:"🇿🇦", score:0}, b:{team:"Canada",   flag:"🇨🇦", score:1}, status:"ft"},
     { kickoff:"2026-06-29T21:00:00-04:00", a:{team:"Netherlands", flag:"🇳🇱", score:"1 (2)"}, b:{team:"Morocco",   flag:"🇲🇦", score:"1 (3)"}, status:"ft", winner:"b", pens:true },
     { kickoff:"2026-07-02T19:00:00-04:00", a:{team:"Portugal", flag:"🇵🇹", score:2}, b:{team:"Croatia",     flag:"🇭🇷", score:1}, status:"ft" },
@@ -334,13 +334,13 @@ const DATA = {
 
   // ===== BRACKET (Round of 16 -> Final). LEFT half = top of the draw, RIGHT half = bottom. =====
   leftR16: [
-    { kickoff:"2026-07-04T17:00:00-04:00", a:{team:"Paraguay", flag:"🇵🇾", score:0}, b:{team:"France",   flag:"🇫🇷", score:1},  status:"auto" }, // Match 89
+    { kickoff:"2026-07-04T17:00:00-04:00", a:{team:"Paraguay", flag:"🇵🇾", score:0}, b:{team:"France",   flag:"🇫🇷", score:1},  status:"ft" }, // Match 89
     { kickoff:"2026-07-04T13:00:00-04:00", a:{team:"Canada",   flag:"🇨🇦", score:0}, b:{team:"Morocco",   flag:"🇲🇦", score:3},  status:"ft" }, // Match 90
     { kickoff:"2026-07-06T15:00:00-04:00", a:{team:"Portugal", flag:"🇵🇹", score:0}, b:{team:"Spain", flag:"🇪🇸", score:1}, status:"ft" }, // Match 93
     { kickoff:"2026-07-06T20:00:00-04:00", a:{team:"USA", flag:"🇺🇸", score:1}, b:{team:"Belgium", flag:"🇧🇪", score:4}, status:"ft"}, // Match 94
   ],
   leftQF: [
-    { kickoff:"2026-07-09T16:00:00-04:00", a:{team:"France",   flag:"🇫🇷", score:""}, b:{team:"Morocco",   flag:"🇲🇦", score:""}, status:"auto" }, // Match 97
+    { kickoff:"2026-07-09T16:00:00-04:00", a:{team:"France",   flag:"🇫🇷", score:0}, b:{team:"Morocco",   flag:"🇲🇦", score:0}, status:"live", clock:"HT" }, // Match 97
     { kickoff:"2026-07-10T15:00:00-04:00", a:{team:"Spain", flag:"🇪🇸", score:""}, b:{team:"Belgium", flag:"🇧🇪", score:""}, status:"auto" }, // Match 98
   ],
   leftSF: [
@@ -348,14 +348,14 @@ const DATA = {
   ],
 
   rightR16: [
-    { kickoff:"2026-07-05T16:00:00-04:00", a:{team:"Brazil", flag:"🇧🇷", score:1}, b:{team:"Norway",   flag:"🇳🇴", score:2}, status:"auto" }, // Match 91
+    { kickoff:"2026-07-05T16:00:00-04:00", a:{team:"Brazil", flag:"🇧🇷", score:1}, b:{team:"Norway",   flag:"🇳🇴", score:2}, status:"ft" }, // Match 91
     { kickoff:"2026-07-05T20:00:00-04:00", a:{team:"Mexico",   flag:"🇲🇽", score:2},  b:{team:"England",  flag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿", score:3},  status:"ft" }, // Match 92
     { kickoff:"2026-07-07T12:00:00-04:00", a:{team:"Argentina", flag:"🇦🇷", score:3}, b:{team:"Egypt",      flag:"🇪🇬", score:2}, status:"ft" }, // Match 95
-    { kickoff:"2026-07-07T16:00:00-04:00", a:{team:"Switzerland", flag:"🇨🇭", score:""}, b:{team:"Colombia", flag:"🇨🇴", score:""}, status:"auto" }, // Match 96
+    { kickoff:"2026-07-07T16:00:00-04:00", a:{team:"Switzerland", flag:"🇨🇭", score:"0 (4)"}, b:{team:"Colombia", flag:"🇨🇴", score:"0 (3)"}, status:"ft", winner:"a", pens:true }, // Match 96
   ],
   rightQF: [
     { kickoff:"2026-07-11T17:00:00-04:00", a:{team:"Norway", flag:"🇳🇴", score:""}, b:{team:"England", flag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿", score:""}, status:"auto" }, // Match 99
-    { kickoff:"2026-07-11T21:00:00-04:00", a:{team:"Argentina", flag:"🇦🇷", score:""}, b:{ph:"RD16 W8"}, status:"auto" }, // Match 100
+    { kickoff:"2026-07-11T21:00:00-04:00", a:{team:"Argentina", flag:"🇦🇷", score:""}, b:{team:"Switzerland", flag:"🇨🇭", score:""}, status:"auto" }, // Match 100
   ],
   rightSF: [
     { kickoff:"2026-07-15T15:00:00-04:00", a:{ph:"QF W3"}, b:{ph:"QF W4"}, status:"auto" }, // Match 102
