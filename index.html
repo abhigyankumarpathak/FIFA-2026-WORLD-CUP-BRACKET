@@ -102,6 +102,48 @@
   }
   .section-sub { text-align: center; color: var(--muted); font-size: 0.8rem; margin-bottom: 18px; }
 
+  /* ---- Winners podium (top 3) ---- */
+  .podium-wrap { max-width: 720px; margin: 0 auto 10px; padding: 0 20px; }
+  .podium {
+    display: flex; align-items: flex-end; justify-content: center; gap: clamp(8px, 2vw, 18px);
+  }
+  .podium-step { flex: 1 1 0; max-width: 200px; text-align: center; }
+  .podium-team { margin-bottom: 10px; }
+  .podium-team .flag { font-size: clamp(1.8rem, 5vw, 2.6rem); display: block; line-height: 1.1; }
+  .podium-team .name {
+    display: block; margin-top: 6px; font-weight: 800; color: var(--text);
+    font-size: clamp(0.72rem, 1.8vw, 0.95rem); letter-spacing: 0.5px;
+  }
+  .podium-team .medal { font-size: clamp(1rem, 2.4vw, 1.3rem); display: block; }
+  .podium-block {
+    border-radius: 8px 8px 0 0; border: 1px solid var(--card-border); border-bottom: none;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: clamp(1.1rem, 3vw, 1.7rem); color: rgba(0,0,0,0.55);
+  }
+  .podium-step.p1 .podium-block { height: 108px; background: linear-gradient(180deg, #ffe063, #e0ad00); }
+  .podium-step.p2 .podium-block { height: 76px;  background: linear-gradient(180deg, #e8eef7, #a8b6c8); }
+  .podium-step.p3 .podium-block { height: 56px;  background: linear-gradient(180deg, #e0a071, #ad6f42); }
+  .podium-step.p1 .podium-team .name { color: var(--gold); }
+  .podium-base {
+    max-width: 720px; margin: 0 auto 6px; height: 6px; border-radius: 3px;
+    background: linear-gradient(90deg, transparent, var(--card-border), transparent);
+  }
+
+  /* Red card marker next to a team name */
+  .redcard { margin-left: 5px; font-size: 0.72em; vertical-align: middle; }
+
+  /* Collapsible Round of 32 archive */
+  .r32-details { margin-top: 46px; }
+  .r32-summary {
+    cursor: pointer; list-style: none; text-align: center;
+    text-transform: uppercase; letter-spacing: 3px; font-weight: 800;
+    font-size: 1rem; color: var(--gold); padding: 10px;
+  }
+  .r32-summary::-webkit-details-marker { display: none; }
+  .r32-summary::after { content: " ▼"; font-size: 0.7em; color: var(--muted); }
+  .r32-details[open] .r32-summary::after { content: " ▲"; }
+  .r32-summary:hover { color: #fff; }
+
   /* Round of 32 fixtures grid */
   .r32-grid {
     max-width: 1240px; margin: 0 auto; padding: 0 20px 10px;
@@ -273,15 +315,24 @@
     <div class="live-bar" id="liveBar"></div>
   </header>
 
+  <section id="podiumSection" hidden>
+    <h2 class="section-title">Final Standings</h2>
+    <p class="section-sub">Champions of the 2026 FIFA World Cup</p>
+    <div class="podium-wrap"><div class="podium" id="podium"></div></div>
+    <div class="podium-base"></div>
+  </section>
+
   <h2 class="section-title">Knockout Bracket</h2>
   <p class="section-sub">Round of 16 → Final · slots fill in as Round-of-32 winners advance</p>
   <div class="bracket-wrap">
     <div class="bracket" id="bracket"></div>
   </div>
 
-  <h2 class="section-title">Round of 32 — Fixtures &amp; Results</h2>
-  <p class="section-sub">All times shown in U.S. Eastern Daylight Time (EDT)</p>
-  <div class="r32-grid" id="r32grid"></div>
+  <details class="r32-details">
+    <summary class="r32-summary">Round of 32 — Fixtures &amp; Results</summary>
+    <p class="section-sub">All times shown in U.S. Eastern Daylight Time (EDT)</p>
+    <div class="r32-grid" id="r32grid"></div>
+  </details>
 
   <footer>
     <p><strong>FIFA World Cup 2026™</strong> — The first 48-team tournament, hosted across Canada 🇨🇦, the United States 🇺🇸, and Mexico 🇲🇽.</p>
@@ -361,9 +412,9 @@ const DATA = {
     { kickoff:"2026-07-15T15:00:00-04:00", a:{team:"England", flag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿", score:1}, b:{team:"Argentina", flag:"🇦🇷", score:2}, status:"auto" }, // Match 102
   ],
 
-  final:      { kickoff:"2026-07-19T15:00:00-04:00", a:{team:"Spain", flag:"🇪🇸", score:""}, b:{team:"Argentina", flag:"🇦🇷", score:""}, status:"auto" },
-  thirdPlace: { kickoff:"2026-07-18T17:00:00-04:00", a:{team:"France", flag:"🇫🇷", score:""}, b:{team:"England", flag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿", score:""}, status:"auto" }, // Match 103
-  champion: "",
+  final:      { kickoff:"2026-07-19T15:00:00-04:00", a:{team:"Spain", flag:"🇪🇸", score:1}, b:{team:"Argentina", flag:"🇦🇷", score:0, red:1}, status:"ft", aet:true },
+  thirdPlace: { kickoff:"2026-07-18T17:00:00-04:00", a:{team:"France", flag:"🇫🇷", score:4}, b:{team:"England", flag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿", score:6}, status:"ft" }, // Match 103
+  champion: "Spain",
 };
 /* ===================  no need to edit below this line  =================== */
 
@@ -425,7 +476,8 @@ function metaHTML(m) {
 
 function teamRow(t, isWinner, hideScore, liveZero) {
   let name;
-  if (t.team) name = `<span class="flag">${t.flag || ""}</span><span class="name">${t.team}</span>`;
+  if (t.team) name = `<span class="flag">${t.flag || ""}</span><span class="name">${t.team}</span>` +
+    (t.red ? `<span class="redcard" title="${t.red} red card${t.red > 1 ? "s" : ""}">🟥</span>` : "");
   else name = `<span class="name tbd">🛡 TBD</span>`;
   const hasScore = t.score !== "" && t.score != null;
   // Live match with no score entered yet -> show 0 automatically.
@@ -444,7 +496,7 @@ function matchupHTML(m) {
   let tag = "";
   if (live) tag = `<span class="status-tag live"><span class="dot"></span>LIVE</span>`;
   else if (soon) tag = `<span class="status-tag soon">⏳ SOON</span>`;
-  else if (st === "ft") tag = `<span class="status-tag ft">FT${m.pens ? " (P)" : ""}</span>`;
+  else if (st === "ft") tag = `<span class="status-tag ft">${m.aet ? "AET" : "FT"}${m.pens ? " (P)" : ""}</span>`;
   return `<div class="matchup${live ? " is-live" : ""}${soon ? " is-soon" : ""}${tag ? " has-tag" : ""}">
     ${tag}
     ${teamRow(m.a, win === "a", hideScore, live)}
@@ -543,15 +595,43 @@ function drawConnectors() {
   bracket.appendChild(svg);
 }
 
+// Top-3 podium, derived from the final (1st/2nd) and the 3rd-place play-off.
+// Stays hidden until both of those matches have a decided winner.
+function renderPodium() {
+  const section = document.getElementById("podiumSection");
+  const fin = DATA.final, third = DATA.thirdPlace;
+  const fw = decideWinner(fin), tw = decideWinner(third);
+  if (!fw || !tw) { section.hidden = true; return; }
+
+  const other = s => (s === "a" ? "b" : "a");
+  const steps = [
+    { cls:"p2", place:2, medal:"🥈", t: fin[other(fw)] },   // runner-up  (left)
+    { cls:"p1", place:1, medal:"🥇", t: fin[fw] },          // champions  (centre, tallest)
+    { cls:"p3", place:3, medal:"🥉", t: third[tw] },        // third place (right)
+  ];
+  document.getElementById("podium").innerHTML = steps.map(s => `
+    <div class="podium-step ${s.cls}">
+      <div class="podium-team">
+        <span class="medal">${s.medal}</span>
+        <span class="flag">${s.t.flag || ""}</span>
+        <span class="name">${s.t.team || "TBD"}</span>
+      </div>
+      <div class="podium-block">${s.place}</div>
+    </div>`).join("");
+  section.hidden = false;
+}
+
 function render() {
   // Round of 32 fixtures grid
   document.getElementById("r32grid").innerHTML = DATA.roundOf32.map(matchupHTML).join("");
+
+  renderPodium();
 
   // Bracket (R16 -> Final), mirrored around the centre trophy
   const finalHTML = `<div class="final-col">
       <div class="trophy">🏆</div>
       <div class="final-matchup">
-        <div class="round-title">The Final · Jul 19</div>
+        <div class="round-title">The Final · Jul 19${effectiveStatus(DATA.final) === "ft" ? ` · ${DATA.final.aet ? "AET" : "FT"}` : ""}</div>
         ${(() => {
           const m = DATA.final, win = decideWinner(m), st = effectiveStatus(m), hide = ["upcoming","soon"].includes(st);
           return teamRow(m.a, win === "a", hide, st === "live") + teamRow(m.b, win === "b", hide, st === "live");
@@ -559,7 +639,7 @@ function render() {
       </div>
       <div class="champion">${DATA.champion ? "🥇 Champions: " + DATA.champion : ""}</div>
       <div class="thirdplace-matchup">
-        <div class="round-title">🥉 3rd-Place · Jul 18</div>
+        <div class="round-title">🥉 3rd-Place · Jul 18${effectiveStatus(DATA.thirdPlace) === "ft" ? ` · ${DATA.thirdPlace.aet ? "AET" : "FT"}` : ""}</div>
         ${(() => {
           const m = DATA.thirdPlace, win = decideWinner(m), st = effectiveStatus(m), hide = ["upcoming","soon"].includes(st);
           return teamRow(m.a, win === "a", hide, st === "live") + teamRow(m.b, win === "b", hide, st === "live");
